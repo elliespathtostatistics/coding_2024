@@ -73,23 +73,22 @@ def tictac(graph):
 			return ('A')
 		elif len(set(row)) == 1 and list(set(row))[0] == 'o':
 			return ('B')
-	#check for column win
-	for row in range(0, 3):
-		for column in range(0, 3):
-			x_row_count = 0
-			o_row_count = 0
-			if graph[0][column] == graph[row][column] and graph[0][column] == 'x' and x_row_count ==3:
-				return('A')
-			elif graph[0][column] == graph[row][column] and graph[0][column] == 'x':
-				x_row_count += 1
-			elif graph[0][column] == graph[row][column] and graph[0][column] == 'o' and o_row_count ==3:
-				return('B')
-			elif graph[0][column] == graph[row][column] and graph[0][column] == 'o':
-				o_row_count += 1
 
-				
+	for j in range(len(graph[0])):
+		x_col_count = 0
+		o_col_count = 0
+		for i in range(len(graph)):
+			if graph[i][j] == graph[0][j] and graph[i][j] == 'x' and x_col_count == 2:
+				return ('A')
+			elif graph[i][j] == graph[0][j] and graph[i][j] == 'x':
+				x_col_count += 1
+			elif graph[i][j] == graph[0][j] and graph[i][j] == 'o' and o_col_count == 2:
+				return ('B')
+			elif graph[i][j] == graph[0][j] and graph[i][j] == 'o':
+				o_col_count += 1
+
 			
-	#check for diagonal win left to right
+#check for diagonal win left to right
 	starting_patt = graph[0][0]
 	winner = True 
 	for i in range(1, 3):
@@ -102,6 +101,7 @@ def tictac(graph):
 
 	#check for diagonal win right to left
 	starting_point = graph[0][2]
+	winner_second_diag = True
 	for i in range(3):
 		if graph[i][2-i] != starting_point:
 			winner_second_diag = False
@@ -245,6 +245,18 @@ def main2():
 
 	graph1 = [['x', 'x', 'o'],['x', 'x', ''], ['o', 'o', 'o']]
 	assert tictac(graph1) == 'B'
+
+	graph2 = [['x', 'x', 'o'],['', 'x', 'o'], ['o', 'o', 'x']]
+	assert tictac(graph2) == 'A'
+
+	graph3 = [['x', 'x', 'o'],['x', 'o', 'x'], ['o', 'x', 'o']]
+	assert tictac(graph3) == 'B'
+
+	graph4 = [['x', 'o', 'o'],['x', 'o', ''], ['x', '', '']]
+	assert tictac(graph4) == 'A'
+
+	graph5 = [['x', 'o', 'o'],['x', 'o', 'x'], ['', 'o', 'x']]
+	assert tictac(graph5) == 'B'
 
 
 	# 'A' three 'x' either veritcally, horizontally or diagonally
