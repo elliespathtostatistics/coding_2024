@@ -1,0 +1,17 @@
+Issues encountered:
+- tictactoe: 
+  - In code setup, you assumed return type 'Player 1' when it should have been 'A', 'B', 'Draw'
+  - In identification, overcomplicated identifciation of graphs and dfs
+  - Making mistakes about possible range values, sometimes not paying attention to the entire description 
+  - you tend to miss colons 
+
+- vlaidate bst:
+  - lack of famliarity with class construction
+  - forgot self in __init__
+  - increase accuracy of identifying syntax errors line by line
+  	- examples are missing semicolons, undefined variable names, mixing up string literals vs. variable names 
+  - you confuse object types so the val not the actual node 
+  - constructing trees was unfamiliar
+
+- pivot
+  - 

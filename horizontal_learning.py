@@ -1,3 +1,5 @@
+import math
+
 class ListNode:
 
 	def __init__(self, val, left=None, right=None):
@@ -41,20 +43,19 @@ def pivoted_array(nums, target):
 
 		# if mid to end is sorted
 		# [8, 9, 5, 6, 7]
-	 	elif nums[mid] <= nums[r]:
-	 		# if target is in the range of the right half 
-	 		if target > nums[mid]:
-	 			l = mid + 1
-	 		elif target < nums[r]:
-	 			l = mid + 1
-	 		# if target is in the range of the left half
-	 		else: # target < nums[mid]:
-	 			r = mid - 1 
+		elif nums[mid] <= nums[r]:
+			# if target is in the range of the right half 
+			if target > nums[mid]:
+				l = mid + 1
+			elif target < nums[r]:
+				l = mid + 1
+			# if target is in the range of the left half
+			else: # target < nums[mid]:
+				r = mid - 1 
 	 		
 
 	 	# if mid to end has the pivot
-
-	 	elif nums[mid] > nums[r]:
+		elif nums[mid] > nums[r]:
 	 		## either the numbers are greater than mid or less than r
 	 		# target is in the left half 
 	 		if target > nums[mid]:
@@ -66,49 +67,73 @@ def pivoted_array(nums, target):
 
 	return -1 
 
+def are_the_same_letter(tuple1, tuple2, tuple3, graph):
+	# write a function that takes in 3 tuples where each tuple is row index, col index 
+	# in a 2d array and returns whether all elements in the tuple are the same 
+	print("graph", graph[tuple1[0]][tuple1[1]])
+	if graph[tuple1[0]][tuple1[1]] == graph[tuple2[0]][tuple2[1]] == graph[tuple3[0]][tuple3[1]]:
+		return True
+
 def tictac(graph):
+	"""
+	sols = [
+		((0, 0), (0, 1), (0, 2)),
+		((1, 0), (1, 1), (1, 2)),
+	]
+	"""
+
 	#check for row win
 	for row in graph:
-		if len(set(row)) == 1 and list(set(row))[0] == 'x':
-			return ('A')
-		elif len(set(row)) == 1 and list(set(row))[0] == 'o':
-			return ('B')
-
-	for j in range(len(graph[0])):
-		x_col_count = 0
-		o_col_count = 0
-		for i in range(len(graph)):
-			if graph[i][j] == graph[0][j] and graph[i][j] == 'x' and x_col_count == 2:
+		row_has_same_element = len(set(row)) == 1
+		if row_has_same_element:
+			if row[0] == 'x':
 				return ('A')
-			elif graph[i][j] == graph[0][j] and graph[i][j] == 'x':
-				x_col_count += 1
-			elif graph[i][j] == graph[0][j] and graph[i][j] == 'o' and o_col_count == 2:
+			elif row[0] == 'o':
 				return ('B')
-			elif graph[i][j] == graph[0][j] and graph[i][j] == 'o':
-				o_col_count += 1
+
+	#check for column wins 
+	for j in range(len(graph[0])):
+		x_col_count = 1
+		o_col_count = 1
+		first_row_ele = graph[0][j]
+		for i in range(len(graph)):
+			cell = graph[i][j]
+			if cell == first_row_ele and cell == 'x':
+				if x_col_count == 3:
+					return ('A')
+				else: 
+					x_col_count += 1
+			
+			elif cell == first_row_ele and cell == 'o':
+				if o_col_count == 3:
+					return ('B')
+				else:
+					o_col_count += 1
 
 			
 #check for diagonal win left to right
 	starting_patt = graph[0][0]
-	winner = True 
+	winner = True
 	for i in range(1, 3):
 		if graph[i][i] != starting_patt:
 			winner = False
-	if winner == True and starting_patt == 'x':
-		return ('A')
-	elif winner == True and starting_patt == 'o':
-		return ('B')
+	if winner == True:
+		if starting_patt == 'x':
+			return ('A')
+		elif starting_patt == 'o':
+			return ('B')
 
-	#check for diagonal win right to left
+#check for diagonal win right to left
 	starting_point = graph[0][2]
 	winner_second_diag = True
 	for i in range(3):
 		if graph[i][2-i] != starting_point:
 			winner_second_diag = False
-	if winner_second_diag == True and starting_point == 'x':
-		return ('A')
-	elif winner_second_diag == True and starting_point == 'o':
-		return ('B')		
+	if winner_second_diag == True:
+		if starting_point == 'x':
+			return ('A')
+		elif starting_point == 'o':
+			return ('B')		
 
 '''
 	# first check for 'x' horizontal win
@@ -169,7 +194,26 @@ def tictac(graph):
 '''
 
 def validate_bst(root):
-	return True 
+
+    def validate(node, low, high):
+        if not root:
+            return True 
+
+        if node.val >= high or node.val <= low:
+            return False 
+
+        if node.left:
+            if not validate(node.left, low, node.val):
+                return False
+    
+        if node.right:
+            if not validate(node.right, node.val, high):
+                return False
+
+        return True 
+
+    return validate(root, -math.inf, math.inf)
+
 
 
 def main1():
@@ -281,6 +325,26 @@ def main3():
 	'2'     '6'  
 	'''
 	assert validate_bst(root) == True
+
+	h = ListNode(13)
+	f = ListNode(11)
+	g = ListNode(12, right = h)
+	root2 = ListNode(10, left = f, right = g)
+	
+	assert validate_bst(root2) == False
+
+	#[5,4,6,null,null,3,7]
+	c = ListNode(3)
+	d = ListNode(7)
+	a = ListNode(4)
+	b = ListNode(6, left=c, right= d)
+	root3 = ListNode(5, left=a, right=b)
+
+	assert validate_bst(root3) == False
+	
+
+	
+	
 	# empty -> T
 	# one node -> T
 	# tree where left is not always smaller than parent -> F
@@ -288,4 +352,4 @@ def main3():
 	# tree where left is smaller than parent and right is bigger than parent -> T
 
 if __name__ == "__main__":
-	main2()
+	main3()
