@@ -11,30 +11,27 @@ class LinkedList:
 
 def merge_two_sorted_lists(list1, list2):
 
-	dummy = node = ListNode(0)
-	i = 0 
+	dummy = node = None
+
 	while list1 and list2:
-
-		i+=1
-		if i > 10:
-			break
-		print("list1", list1.val, "list2", list2.val)
 		if list1.val < list2.val:
-			print("entered")
-			node.next = list1
+			node.next = ListNode(list1.val)
 			list1 = list1.next
-		else:
-			print("there")
-			node.next = list2
+		else: 
+			node.next = ListNode(list2.val)
 			list2 = list2.next 
-		node = node.next 
-		print('next node', node.val)
 
-	node.next = list1 if list1 else list2
-	print("list2", list2)
-	node = node.next 
-	
-	return dummy.next
+	while list1 or list2:
+		if list1:
+			node.next = ListNode(list1.val) 
+			list1 = list1.next
+
+		if list2:
+			node.next = ListNode(list2.val)
+			list2 = list2.next 
+			
+	return dummy.next 
+
 
 def print_list(head):
 	node = head
