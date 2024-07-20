@@ -15,3 +15,12 @@ Issues encountered:
 
 - pivot
   - 
+
+ - delete node 
+  - remember to return dummy.next not head in case head gets deleted
+
+ - cool string
+  - defaultdicts can't be initialized w 0, it must be int if you want default value to be 0
+  - the case 'bac'
+  - it's not possible to subscript sets, if you want to subscript a list, wrap a list around it
+  - add to a set, append to a list

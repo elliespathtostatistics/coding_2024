@@ -268,6 +268,9 @@ def main1():
 	target11 = 6
 	assert pivoted_array(nums11, target11) == 4
 	
+	nums12 = [8, 9, 4, 5, 6, 7]
+	target11 = 100
+	assert pivoted_array(nums11, target11) == -1
 	
 	# 0 to len(arr)-1:
 	    # pivot
@@ -352,4 +355,4 @@ def main3():
 	# tree where left is smaller than parent and right is bigger than parent -> T
 
 if __name__ == "__main__":
-	main3()
+	main1()
