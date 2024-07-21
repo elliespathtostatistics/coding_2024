@@ -10,18 +10,33 @@ class LinkedList:
 		self.head = head
 
 def merge_two_sorted_lists(list1, list2):
-
-	dummy = node = None
+	# if node is None, then you set node to that first node
+	# else, you set node.next to the next node and advance pointer to the next node 
+	# if both lists exist
+	if list1.val < list2.val:
+		start = node = ListNode(list1.val) 
+		list1 = list1.next 
+	else:
+		start = node = ListNode(list2.val) 
+		list2 = list2.next 
+	
 
 	while list1 and list2:
+		print("node while both lists exist", node.val)
 		if list1.val < list2.val:
 			node.next = ListNode(list1.val)
 			list1 = list1.next
+
 		else: 
 			node.next = ListNode(list2.val)
-			list2 = list2.next 
+			list2 = list2.next
 
+		node = node.next
+
+
+	# if we've reached the end of one of the lists
 	while list1 or list2:
+		print("node while one list exist", node.val)
 		if list1:
 			node.next = ListNode(list1.val) 
 			list1 = list1.next
@@ -30,8 +45,11 @@ def merge_two_sorted_lists(list1, list2):
 			node.next = ListNode(list2.val)
 			list2 = list2.next 
 			
-	return dummy.next 
+		node = node.next
 
+
+	return start
+	     
 
 def print_list(head):
 	node = head
@@ -40,6 +58,16 @@ def print_list(head):
 		node = node.next
 
 	print()
+
+def get_list_as_str(head):
+	res  = ""
+	node = head
+	while node:
+		res += str(node.val)
+		res += "-> "
+		node = node.next
+
+	return res 
 
 def main1():
 	print("merge two lists")
@@ -50,6 +78,8 @@ def main1():
 	b.next = c
 	c.next = None
 
+	print_list(a)
+
 	d = ListNode(3)
 	e = ListNode(4)
 	f = ListNode(10)
@@ -59,7 +89,7 @@ def main1():
 	f.next = g
 	g.next = None
 
-	print_list(a)
+	print_list(d)
 	
 
 	k = ListNode(1)
@@ -83,8 +113,10 @@ def main1():
 	print_list(k)
 	 
 	res = merge_two_sorted_lists(a, d)
-	print("res", res, "k", k)
-	assert merge_two_sorted_lists(a, d) == k
+
+	merged = get_list_as_str(res)
+	expected = get_list_as_str(k)
+	assert merged == expected, '{} != {}'.format(merged, expected)
 
 if __name__ == "__main__":
 	main1()
