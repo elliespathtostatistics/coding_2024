@@ -24,3 +24,8 @@ Issues encountered:
   - the case 'bac'
   - it's not possible to subscript sets, if you want to subscript a list, wrap a list around it
   - add to a set, append to a list
+
+- subwords and compound words
+  - return None
+  - you have no comments
+  - you tried memorizing previous solution and map it, you gotta trust he solution 

@@ -1,4 +1,6 @@
 
+from collections import namedtuple, defaultdict
+
 class ListNode:
 
 	def __init__(self, val, next = None):
@@ -60,15 +62,59 @@ class BST:
 
 	def find_lca(root, val1, val2):
 
+		if not root or root == val1 or root == val2:
+			return root
 
-		if val1 > root.val and val2 > root.val:
-			return find_lca(root.right, val1, val2)
+		left_lca = find_lca(root.left, val1, val2)		
 
-		elif val1 < root.val and val2 < root.val:
-			return find_lca(root.left, val1, val2)
+		right_lca = find_lca(root.right, val1, val2)
 
-		else:
+		if left_lca and right_lca:
 			return root 
+
+		return left_lca if left_lca else right_lca
+
+trans_tup = namedtuple("trans_tup", ["name", "time", "amount", "city", "transaction"])
+
+def invalidTransactions(transaction_list):
+	# a transaction is invalid if it exceeds $1000
+	# or it occurs within and including 60 min of 
+	# another trans w same name in different city
+	invalid_trans = []
+	trans_dict = defaultdict(list)
+
+	def determine_invalid(trans_tup1, trans_tup2):
+		print("trans_tup1", trans_tup1, "trans_tup2", trans_tup2)
+		if trans_tup1.city != trans_tup2.city and abs(int(trans_tup1.time) - int(trans_tup2.time)) <= 60:
+			return True
+		else:
+			return False
+
+	# organize all transactions grouped by name
+	for i, transaction in enumerate(transaction_list):
+		name, time, amount, city = transaction.split(',')
+		t = trans_tup(name, time, amount, city, transaction)
+
+		if int(amount) > 1000:
+			invalid_trans.append(transaction)
+			
+		if name not in trans_dict:
+			trans_dict[name] = [t] 
+
+		trans_dict[name].append(t)
+
+		# then compare those transactions per name
+		matching_trans = trans_dict.get(name, [])
+
+		for trans in matching_trans:
+			if t != trans:
+				if determine_invalid(t, trans):
+					invalid_trans.append(trans.transaction)
+					invalid_trans.append(t.transaction)
+
+
+	return list(set(invalid_trans))
+
 
 
 def main1():
@@ -81,11 +127,20 @@ def main1():
 
 
 def main2():
-	print("lca of bt")
+	print("lca of bst")
 	a = TreeNode(7, left = 3, right = 10)
 	b = TreeNode(3, left = 1, right = 4)
 	c = TreeNode(10, left = 8, right = 11)
 	myBST = BST(a)
 
+def main3():
+	print("invalid transaction problem")
+	transactions = ["alice,20,800,mtv","alice,50,100,beijing"]
+	output_correct = ["alice,20,800,mtv", "alice,50,100,beijing"]
+	output = invalidTransactions(transactions)
+	print("output", output)
+	assert invalidTransactions(transactions) == output_correct
+
+
 if __name__ == "__main__":
-	main1()
+	main3()

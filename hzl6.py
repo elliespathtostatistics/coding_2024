@@ -51,13 +51,12 @@ class BST:
 
 def main1():
 	print("flatten linked list")
-	a = LinkedList(b)
-	b = ListNode(4, next = c, down = d)
 	c = ListNode(6)
 	d = ListNode(8)
+	b = ListNode(4, next = c, down = d)
 	e = ListNode(9)
-	flattened_list = flatten_list(b) 
-	print_members(flatten_list) == "4 -> 6 -> 8 -> 9 -> 10"
+	a = LinkedList(b)
+	a.print_members == "4 -> 6 -> 8 -> 9 -> 10"
 
 '''
 4 -> 6 - > 10
