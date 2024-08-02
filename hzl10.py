@@ -1,13 +1,23 @@
+from collections import deque 
+'''
 class PalindromeTracker:
 
-	def __init__(self, existing_letters):
+	def __init__(self, existing_letters = None):
 		self.existing_letters = existing_letters
+		self.old_letters = existing_letters
 
 	def track(self, char):
 		self.existing_letters = self.existing_letters+char
 
 	def print_existing(self):
 		print(self.existing_letters)
+
+	def detect_palindrome_efficiently(self):
+		if len(self.old_letters) == 0 or len(self.old_letters) == 1:
+			return True 
+		else:
+			if len(self.old_letters) == 2:
+				if 
 
 	def is_it_palindrome(self):
 		for i in range(len(self.existing_letters)):
@@ -16,11 +26,54 @@ class PalindromeTracker:
 			else:
 				return False 
 		return True
-			
+'''
+def find_inflection_point(my_list, l, r):			
+	if l > r:
+		return -1
 
+	m = l + (r-l)//2
+
+	# If m is either at the beginning or the end, then it can't be the inflection point
+	if m <= l or m >= r:
+		print("no inflection point", "m", m, "l", l, "r", r)
+		return -1
+
+
+	# If v[m] is smaller than the previous and the next, then m is the inflection point
+	if my_list[m] < my_list[m+1] and my_list[m] < my_list[m-1]:
+		print("inflection point found", m)
+		return m
+
+	# If v[m] is smaller than previous, then m is in the first "half" of the inflected list of number. We should search the second half then
+	if my_list[m] < my_list[m-1]:
+		return find_inflection_point(my_list, m+1, r)
+
+	# If we got here, then this means that m is in the second "half" of the inflected list of numbers. We should search the first half then
+
+	else:
+		return find_inflection_point(my_list, l, r-1)
+
+def find_inflection_point2(nums, target):
+	l, r = 0, len(nums) - 1
+	while l < r:
+		mid = l + (r-l)//2
+
+		if nums[0] <= nums[mid]:
+			if nums[0] <= target <= nums[mid]:
+				r = mid 
+			else:
+				l = mid + 1
+
+		else:
+			if nums[l] <= target <= nums[r]:
+				l = mid + 1
+			else:
+				r = mid
+
+	return left if nums[left] == target else -1
 
 def pivoted_array(sorted_array):
-	pass
+	pass 
 
 def subword_creation(my_str, subwords, array_of_subwords_used):
 	"""
@@ -92,7 +145,7 @@ def main1():
 	
 def main2():
 	print("palindrome tracker")
-	a = palindrome_tracker('')
+	a = PalindromeTracker('')
 	a.track('c')
 	a.track('a')
 	a.track('c')
@@ -100,7 +153,7 @@ def main2():
 	a.is_it_palindrome()
 	assert a.is_it_palindrome() == True 
 
-	b = palindrome_tracker('')
+	b = PalindromeTracker('')
 	b.track('n')
 	b.track('o')
 	b.track('t')
@@ -109,7 +162,12 @@ def main2():
 	b.is_it_palindrome()
 	assert b.is_it_palindrome() == False
 
+def main3():
+	my_list = [5, 3, 2, 1, 4, 6]
+	find_inflection_point(my_list, 0, len(my_list)-1)
 
+	my_list1 = [1, 2, 3, 4, 5, 6]
+	find_inflection_point(my_list1, 0, len(my_list1)-1)
 
 if __name__ == '__main__':
-	main2()
+	main3()

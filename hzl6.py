@@ -37,6 +37,72 @@ class LinkedList:
 
 		return head 
 
+	def flatten_linked_list2(self, head):
+		def flatten_list(prev, cur):
+			
+			if cur is None:
+					return prev 
+			
+			# connect prev to cur
+			prev.next = curr
+
+			# save next node pointer to continue traversal after child nodes
+			next_node = curr.next 
+
+			# recursively flatten child nodes 
+			tail = flatten_list(curr, curr.child)
+			
+			# after flattening, curr node's child is set to None
+			curr.child = None 
+
+			# flatten w the saved next_node
+			return flatten_list(tail, next_node)
+
+		if head is None:
+			return None 
+
+		dummy = Node(0)
+
+		flatten_list(dummy, head)
+
+		return dummy.next 
+
+def flatten_linked_list3(self, head):
+		def flatten_list(prev, cur):
+			
+			if cur is None:
+					return prev 
+			
+			# 1. connect prev to cur
+			prev.next = curr
+
+			# 2. save next node pointer to continue traversal after child nodes
+			next_node = curr.next 
+
+			next_next_node = curr.next.next
+
+			curr.next = next_node 
+
+			# recursively flatten child nodes 
+			tail = flatten_list(next_node, curr.child)
+			
+			# after flattening, curr node's child is set to None
+			curr.child = None 
+
+			# flatten w the saved next_node
+			return flatten_list(tail, next_next_node)
+
+		if head is None:
+			return None 
+
+		dummy = Node(0)
+
+		flatten_list(dummy, head)
+
+		return dummy.next 
+
+
+
 class TreeNode:
 	def __init__(val, left = None, right = None):
 		self.val = val 
@@ -47,7 +113,6 @@ class BST:
 	def __init__(root):
 		self.root = root
 
-	
 
 def main1():
 	print("flatten linked list")
