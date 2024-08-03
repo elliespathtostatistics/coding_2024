@@ -1,8 +1,17 @@
 # unhappy lab parters 
 
 # thinking took 30min
+
+# takeaways
+# 1. draw it out on a piece of paper! on the piece of paper, be clear about what variables represent
+# 2. comment it out
+# 3. use short variable names
+# 4. use this format to index nested dicts: my_dict[key][letter] 
+
 from collections import defaultdict
 
+'''
+problem:
 pref = {'A': ['B','C','D'],
         'B': ['C','A','D'],
         'C': ['A','B','D'],
@@ -13,36 +22,121 @@ pairs = {'A':'D',
          'B':'C',
          'C':'B'}
 
-# output = [A, C]
+utput = [A, C]
+'''
 
 def unhappy_lab_partners(pref, pairs):
 	my_dict = defaultdict(dict)
-	unhappy_partners = []
 
-	# first set up my own dict with keys being partner, and indices being order of preferences in the inner dict 
+	# 1). first set up my own dict with keys being partner, and indices being order of preferences 
 	for key, val in pref.items(): # key are 'A', 'B', 'C', 'D', val are ['B', 'C', 'D']
 		my_dict[key] = {}
 		for i, letter in enumerate(val):
 			my_dict[key][letter] = i # i is the preference ranking 
-	print("my_dict", my_dict)
-
-	# then iterate through pairs to find keys where unhappy condition is met
-	for key in pairs:
-		paired_partner = pairs[key] # paired_partner for 'A' is 'D'
-		paired_partner_rank = my_dict[key][paired_partner] # in this case 'D' is ranked #2 in pref
-		print("paired_partner", paired_partner, "paired_partner_rank", paired_partner_rank)
-
-		# iterate from 0 to rank non inclusive to find other lab partners that's more preferred
-		for i in range(0,paired_partner_rank):
-			more_preferred_partners = my_dict[key][i] # B, C are more preferred to D for A
-			# check to see if more_preferred_partners also got paired w people they prefer less to key
-			more_preferred_partners_paired = pairs[more_preferred_partners] # B: C, C: B so C and B
-			# now iterate through pref for this more preferred partners
-			for key, val in pref[more_preferred_partners].items(): 
-				if pref[more_preferred_partners] < paired_partner_rank:
-					unhappy_partners.append(more_preferred_partners_paired)
-
+	
+	
+	unhappy_partners = []
+	
+	# 2). then iterate through pairs to find keys where unhappy condition is met
+	for x in pairs:
+		y = pairs[x] # paired_partner for 'A' is 'D'
+		xs_y_rank = my_dict[x][y] # in this case 'D' is ranked #2 in pref
+		
+		# if x and y are paired and x prefers y first then no need to iterate through the values		
+		if xs_y_rank == 0:
+			continue 
+		else:
+			# otherwise, 
+			for u, rank in my_dict[x].items():
+				if rank < xs_y_rank:
+					# 3) now we check to see if the potential unhappy partner prefers x over their pair
+					v = pairs[u]
+					if my_dict[u][x] < my_dict[u][v]:
+						unhappy_partners.append(x)
+		
+	print("unhappy_partners", unhappy_partners)
 	return unhappy_partners
 
 
-unhappy_lab_partners(pref, pairs)
+'''
+pref = {'A': ['B','C','D'],
+
+        'B': ['C','A','D'],
+
+        'C': ['A','B','D'],
+
+        'D': ['A','B','C']}
+
+pairs = {'A':'D',
+
+         'D':'A',
+
+         'B':'C',
+
+         'C':'B'}
+
+'''
+def main():
+
+	pref = {'A': ['B','C','D'],
+
+	        'B': ['C','A','D'],
+
+	        'C': ['A','B','D'],
+
+	        'D': ['A','B','C']}
+
+	pairs = {'A':'D',
+
+	         'D':'A',
+
+	         'B':'C',
+
+	         'C':'B'}
+
+	assert unhappy_lab_partners(pref, pairs) == ['A', 'C']
+
+	pref = {'A': ['B','C','D'],
+
+	        'B': ['C','A','D'],
+
+	        'C': ['A','B','D'],
+
+	        'D': ['A','B','C']}
+
+	pairs = {'A':'D',
+
+	         'D':'A',
+
+	         'B':'C',
+
+	         'C':'B'}
+
+	assert unhappy_lab_partners(pref, pairs) == ['A', 'C']
+	
+	pref1 = {'A': ['D','C','B'],
+
+	        'B': ['A','D','C'],
+
+	        'C': ['A','B','D'],
+
+	        'D': ['C','B','A']}
+
+	pairs1 = {'A':'D',
+
+	         'D':'A',
+
+	         'B':'C',
+
+	         'C':'B'}
+
+	assert unhappy_lab_partners(pref1, pairs1) == ['D', 'B']
+
+
+
+
+
+if __name__== "__main__":
+	main()
+
+

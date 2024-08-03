@@ -164,10 +164,10 @@ def main2():
 
 def main3():
 	my_list = [5, 3, 2, 1, 4, 6]
-	find_inflection_point(my_list, 0, len(my_list)-1)
+	find_inflection_point2(my_list, 0, len(my_list)-1)
 
 	my_list1 = [1, 2, 3, 4, 5, 6]
-	find_inflection_point(my_list1, 0, len(my_list1)-1)
+	find_inflection_point2(my_list1, 0, len(my_list1)-1)
 
 if __name__ == '__main__':
 	main3()

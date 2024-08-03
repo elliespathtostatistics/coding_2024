@@ -111,17 +111,17 @@ def flatten_linked_list4(head):
 		# case 4) right and down, then go right by one first, then down and then connect down to next next
 		
 
-		def flatten_list(curr):
+		def flatten_list(prev, curr):
 
 
-			if curr.next and not curr.down:
+			if curr.next and not curr.child:
 				return flatten_list(curr.next)
 
-			elif curr.down and not curr.next:
-				curr.next = curr.down 
+			elif curr.child and not curr.next:
+				curr.next = curr.child 
 				return flatten_list(curr.next)
 
-			elif not curr.down and not curr.next:
+			elif not curr.child and not curr.next:
 				return curr 
 
 
@@ -129,17 +129,19 @@ def flatten_linked_list4(head):
 				# case 4 where there's a right node and a down node 				
 				next_next_node = curr.next.next 
 
-				curr.next.next = curr.down 
+				curr.next.next = curr.child 
 
-				tail = flatten_list(curr.down)
+				tail = flatten_list(curr.child)
+				print("tail", tail.val)
 
-				curr.down = None 
+				curr.child = None 
 
 				tail.next = next_next_node
 
 				return tail 
 
-
+		dummy = ListNode(None)
+		dummy.next = head 
 		flatten_list(head)
 
 		return head 
@@ -164,7 +166,7 @@ def main1():
 	b = ListNode(4, next = c, child = d)
 	e = ListNode(9)
 	a = LinkedList(b)
-	new_flattened_list = flatten_linked_list3(b)
+	new_flattened_list = flatten_linked_list4(b)
 	printed_nodes = print_members(new_flattened_list)
 	assert printed_nodes == "4 -> 6 -> 8 -> 9 -> 10", printed_nodes
 
