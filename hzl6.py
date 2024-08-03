@@ -111,8 +111,7 @@ def flatten_linked_list4(head):
 		# case 4) right and down, then go right by one first, then down and then connect down to next next
 		
 
-		def flatten_list(prev, curr):
-
+		def flatten_list(curr):
 
 			if curr.next and not curr.child:
 				return flatten_list(curr.next)
@@ -138,10 +137,9 @@ def flatten_linked_list4(head):
 
 				tail.next = next_next_node
 
-				return tail 
+				flatten(tail)
 
-		dummy = ListNode(None)
-		dummy.next = head 
+
 		flatten_list(head)
 
 		return head 
