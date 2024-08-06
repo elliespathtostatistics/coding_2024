@@ -1,0 +1,235 @@
+## Problem Description  
+
+  Implement a procedure that will print out all permutations of a given binary string that may or may not contain one or more "wildcards". 
+
+  Consider a "binary string" such as: 
+  
+  ``` "0110" ```
+
+  Now imagine we swap a character in this string for a "wildcard"  (represented by "?")
+ 
+  ``` "01?0" ```
+
+  For the purposes of this question, we say a "wildcard" evaluates to one of two possible values: "0" or "1" 
+
+  If your method is passed a binary string with one or more wildcards, it should print out all possible permutations of that string with the wildcard.
+
+  e.g. 
+
+  `"0?1" --> "001" "011"`
+
+## Expected Completion Time 
+
+   25 minutes
+
+## Problem Complexity Level
+
+   Coding Fluency: Hard
+  
+  Problem Solving: Easy
+  
+## Questions the candidate might ask
+
+   * How do I handle empty strings? 
+   
+     *This is trivial to handle, so allow the candidate to decide what to do what they want with the empty string.* 
+   
+   * Can I assume my input string only contains chars '1','0','?'
+      
+      *Yes* 
+  
+## Sample inputs - Expected outputs
+
+  input: "01?0" 
+  
+  output: "0110", "0100" 
+
+  input: "0??0"
+  
+  output: "0100", "0110", "0010", "0000" 
+
+  
+## Input corner cases
+
+  * Empty strings
+  
+## Solutions
+
+**Recursive Solution** 
+
+Given solution utility method 
+
+```python
+  def X(str_in,seen=""):
+    ...
+```
+
+1. First, check the length of input. If the length of input is 0, print seen.
+  
+```python
+if len(str_in) == 0:
+  print(seen)
+```
+
+2. If the first character of input is "?", then we make two calls to X 
+  
+```python  
+elif str_in[0] == "?":
+  X(str_in[1:], seen+"0")
+  X(str_in[1:], seen+"1")
+```
+  
+3. Otherwise, if the first character is a "0" or "1"
+  
+```python
+else:
+  X(str_in[1:],seen+str_in[0])
+```
+
+4. 
+
+Finally, to prevent misuse of our interface...
+
+```python
+def solution(binary): 
+  X(binary)
+```
+
+**Iterative Solution**
+First go through the input string and count all the wild card characters; let that number be C. Now if we ignore the rest of the input string, and only think of the wild card characters together, we can think of them forming a binary number which is C bits long. To get all the possible values for this binary number we just have to count from 0 to 2^C - 1, and record the bit pattern for each number. If we print this bit pattern in place of the wild card characters when printing the input string, we will have our results.
+
+
+### Design
+
+**Python**
+```python 
+def solution(binary)
+"""
+  Print all permutations of a given binary string with wildcards
+  Arguments:
+    binary (str): the input string
+  Returns: 
+    None
+"""
+```
+  
+### Data structures
+
+**Recursive**: N/A
+
+**Iterative**: arrays
+
+### Implementation
+
+**Recursive Python**
+```python
+def solution(binary):
+  print_binary_str_util(binary)
+  
+def print_binary_str_util(curr,past=""):                                                                                                                                                                                                     
+    if len(curr) == 0:                              
+        print(past)                                                                                                                                                                                                                   
+    elif curr[0] == "?":                                                                                                                                                                                                              
+        print_binary_str_util(curr[1:],past+"0")                                                                                                                                                                                             
+        print_binary_str_util(curr[1:],past+"1")                                                                                                                                                                                             
+    else:                                                                                                                                                                                                                             
+        print_binary_str_util(curr[1:],past+curr[0])  
+```
+```
+(using input string "??????????????????")
+$ time python recursive_sol.py
+real	0m5.028s
+user	0m2.170s
+sys	0m1.029s
+```
+
+**Recursive C++**
+[Link to C++ Solution](BinaryStringWithWildcards.t.cpp)
+
+**Iterative Python** 
+```python
+def print_binary_str(str):
+  # Count wild cards
+  count = str.count('?')
+
+  # Print all permutations of string with wild cards replaced by 0/1
+  for i in range(2 ** count):
+      pos = 0
+      for ch in str:
+          if ch == '?':
+              if i & (2 ** pos):
+                  print('1', end='')
+              else:
+                  print('0', end='')
+              pos += 1
+          else:
+              print(ch, end='')
+      print()
+
+```
+
+**Recursive OCaml**
+```ocaml
+let print_all_permutations str =
+  (* helper function for string -> char List *)
+  let explode_string s = List.init (String.length s) (String.get s) in
+  (* helper function to print a char List in reverse *)
+  let print_rev_char_list a =
+    List.iter (Printf.printf "%c") (List.rev a);
+    Printf.printf "\n"
+  in
+  let rec print_ acc rest =
+    match rest with
+    | [] -> print_rev_char_list acc
+    | curr :: rest when curr = '?' ->
+      print_ ('0' :: acc) rest;
+      (print_ [@tailcall]) ('1' :: acc) rest
+    | curr :: rest -> (print_ [@tailcall]) (curr :: acc) rest
+  in
+  print_ [] (explode_string str)
+in
+(*Test driver*)
+print_all_permutations "01?0";
+print_all_permutations "";
+print_all_permutations "????";
+print_all_permutations "01?11?";
+```
+
+### Runtime complexity
+
+**Recursive and Iterative**: O(N * 2^C) where N = # of characters in the input string, and C is the number of "?". 
+
+### Memory usage
+  
+**Recursive**: O(N * 2^N) where N = # of characters in the input string. Accounts for complexity of creating lists/strings.
+**Iterative**: O(1)
+  
+## Test Driver
+```python
+    if __name__ == "__main__":
+      solution("00??")                                                                                                                                                                                                              
+      solution("????")                                                                                                                                                                                                              
+      solution("")                                                                                                                                                                                                                  
+      solution("?111")      
+```
+
+
+
+## Follow-up questions
+
+  * Briefly describe an iterative/recursive solution for this question
+  * Is it better, worse, or the same in terms of memory/runtime complexity? 
+  * Do you think a recursive/iterative approach would provide a cleaner conceptual solution? 
+
+## Tags
+
+- interface design
+- algorithms
+- recursion
+- string processing
+- coding fluency hard
+- sre
+
+## Contacts
+
+  jbueno12@bloomberg.net, mwilliamso58@bloomberg.net, zlin174@bloomberg.net

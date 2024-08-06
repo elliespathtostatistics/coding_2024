@@ -1,0 +1,472 @@
+## Problem Description
+
+Given a function that returns the next page from a book:
+
+1. Print an index of all the words in the book and the pages they appear in.
+2. Print the index once again this time in descending order of word popularity.
+The popularity of a word is measured by the total number of
+occurrences of the word in the book, not by the number of pages it appears in.
+
+## Expected Completion Time
+
+45 minutes
+
+## Problem Complexity Level
+
+  Coding Fluency: Easy
+  
+  Problem Solving: Easy
+
+## Questions the candidate might ask
+
+1. What is an index?
+2. What special characters should be supported?
+3. What order should words be printed in?
+4. Page number, or offset within the input?
+5. Should certain stop words be filtered out?
+6. Capitalization? Diacritical marks?
+7. What language?
+
+For every question, ask the candidate which answer would make it easier to solve. Have the candidate solve the problem that way. Don't assume that you know which one makes it easier. Ignoring capitalization can be very difficult!
+
+## Sample inputs - Expected outputs
+
+INPUT
+
+```
+    Page 1: "this is a sample page",
+    Page 2: "from a sample book"
+```
+
+OUTPUT
+
+```
+-- Index (In no specific order of words) --
+is:       [1]
+a:        [1,2]
+page:     [1]
+from:     [2]
+book:     [2]
+this:     [1]
+sample:   [1,2]
+
+-- Popularity Index (no specific order within group) --
+sample:   [1,2]           (2 times)
+a:        [1,2]           (2 times)
+page:     [1]             (1 time)
+is:       [1]             (1 time)
+book:     [2]             (1 time)
+from:     [2]             (1 time)
+this:     [1]             (1 time)
+```
+
+## Input corner cases
+
+- A book of one page
+- A book of many occurrences of only one word
+
+## Solution
+
+There are two equivalent approaches to solving this problem.
+
+The first (presented below in Python) is to build the unsorted index as quickly
+as possible, and defer the sorting of the words according to their popularity
+until printing time.  This solution will only require a hash table of words to
+pages and occurrence count. These solutions optimize the complexity for building
+the index at the expense of printing the index.
+
+The other solution (presented below in C++) maintains both a sorted list of
+words according to their popularity and a hash map of words to pages and their
+total number of occurrences in the book. This solution amortizes the cost of
+sorting the words according to their popularity while building the index, hence
+speeding up printing the sorted index, however takes more time to build the
+index.
+In Python the popularity map can be implemented with an OrderedDict.
+
+### Interface Design
+
+```c++
+class Index {
+public:
+    void addWord(const Word& w, PageNumber pageNum);
+    void print(std::ostream& s)const;
+    void printInOrderOfPopularity(std::ostream& s)const;
+};
+```
+
+### Data structures
+
+The presented solution uses a hash table of words to the total number of
+occurrences of the word in the book and the pages where it exists. It also uses
+a sorted map of the number of occurrences of words to all the words with the
+given number of occurrences.
+
+### Implementation
+
+[Link to C++ Solution](BookIndex.t.cpp)
+
+#### JavaScript Solution
+
+For more information about the JS solution, contact Steven Gabarro
+
+```javascript
+"use strict";
+
+// Sample book for testing, with punctuation added for extra fun
+
+let sampleBook = [
+    "this is a sample page,",
+    "from a sample book!! with more than a page...",
+    "as a sample-input"
+];
+
+
+// Function takes a book (array of strings, each string being a page)
+// Returns an object where words found are keys, value being objects with
+// 'pages': array of numbers representing pages where word was found (first page counts as 1)
+// 'total': total number of times the word was found
+function indexBook(book) {
+    return book.reduce((index, currPageText, currPageNum) => {
+        let page = currPageText.match(/\b\w+\b/gi);  // regex to look for actual words
+        page.forEach(word => {
+            // word count / page aggregator
+            index[word] = index[word] || { pages: [], total: 0 };
+            let pagesList = index[word].pages;
+            index[word].total++;
+            if (pagesList[pagesList.length - 1] !== currPageNum + 1) {
+                // add the page to the pages array only if not found in the same page yet
+                pagesList.push(currPageNum + 1);
+            }
+        });
+        return index;
+    }, {});
+}
+
+// Takes a pre-calculated index and prints it in no particular order
+function printIndex(index) {
+    Object.keys(index).forEach(item => {
+        console.log(`${item}:\t\t[${index[item].pages}]`);
+    });
+}
+
+// Takes a book, calculates index and prints it
+function printBookIndex(book) {
+    let index = indexBook(book);
+    printIndex(index);
+}
+
+
+// Prints a pre-calculated index in descending word iteration order
+function printSortedIndex(index) {
+    Object.entries(index).sort((o1, o2) => o2[1].total - o1[1].total)
+        .forEach(item => {
+            console.log(`${item[0]}:\t\t[${item[1].pages}] (${item[1].total} time${item[1].total > 1?'s':''})`);
+        });
+}
+
+// Takes a book, calculates index, and prints in descending iteration order
+function printSortedBookIndex(book) {
+    let index = indexBook(book);
+    printSortedIndex(index);
+}
+
+
+// Call functions for testing
+let index = indexBook(sampleBook);
+printIndex(index);
+
+printSortedIndex(index);
+
+printBookIndex(sampleBook); // redundant call to test
+
+printSortedBookIndex(sampleBook); // redundant call to test
+```
+
+#### Python Solution
+
+```Python
+from collections import defaultdict
+
+
+def index(book):
+    the_index = defaultdict(set)
+    for page, page_no in book:
+        for word in page.split():
+            if word in the_index:
+                the_index[word]["pages"].add(page_no)
+                the_index[word]["occurrences"] += 1
+            else:
+                the_index[word] = {"pages" : set([page_no]), "occurrences" : 1}
+    return the_index
+
+
+def popularity_index(book):
+    return sorted(index(book).items(),
+                  key=lambda word: word[1]["occurrences"],
+                  reverse=True)
+
+def main():
+
+    sample_book = [("this is a sample page ", 1),
+                   ("from a sample book with more than a page ", 2),
+                   ("as a sample input", 3)]
+
+    for k, v in index(sample_book).items():
+        print("{:10}[{}]".format(k + ":", ",".join(str(i) for i in v["pages"])))
+
+    #   -- Index (In no specific order of words) --
+    #   with:     [2]
+    #   is:       [1]
+    #   a:        [1,2,3]
+    #   input:    [3]
+    #   page:     [1,2]
+    #   from:     [2]
+    #   book:     [2]
+    #   more:     [2]
+    #   this:     [1]
+    #   sample:   [1,2,3]
+    #   as:       [3]
+    #   than:     [2]
+
+    print
+
+    for k, v in popularity_index(sample_book):
+        print("{:10}{:18}({} times)".format(k + ":",
+                                        ("[" +
+                                         (",".join(str(i) for i in v["pages"])) +
+                                         "]"),
+                                        v["occurrences"]))
+
+    #   -- Popularity Index (no specific order within group) --
+    #   a:        [1,2,3]           (4 times)
+    #   sample:   [1,2,3]           (3 times)
+    #   page:     [1,2]             (2 times)
+    #   with:     [2]               (1 time)
+    #   is:       [1]               (1 time)
+    #   input:    [3]               (1 time)
+    #   book:     [2]               (1 time)
+    #   from:     [2]               (1 time)
+    #   more:     [2]               (1 time)
+    #   this:     [1]               (1 time)
+    #   as:       [3]               (1 time)
+    #   than:     [2]               (1 time)
+
+if __name__ == '__main__':
+    main()
+```
+
+### Runtime complexity
+
+We will use the following constants:
+
+- w - total number of words
+- q - number of unique words
+
+#### Maintain sorted list according to popularity (C++ solution)
+
+- Building the indexes is `O(w log q)` (there is at most q entries in the map so
+the lookup, insertion and removal from the sorted map will be `log(q)`).
+- Printing the word index and the popularity index is O(w) (each word in the
+book is either a new word to print or another page to print for an existing
+word). If we omit the pages when printing the popularity index (not explicitly
+asked in the problem requirements), the runtime complexity becomes `O(q)`.
+
+#### Build as fast as possible and defer sort (Python solution)
+
+- Building the index is O(w) (the cost of adding each word is constant)
+- Printing the word index O(q log q) (due to sorting a container of at most q
+entries).
+
+### Memory usage
+
+- Memory usage is O(w). Each word in the book will either add a new map entry or
+another page number to an existing entry (or nothing if the word is repeated in
+the same page).
+
+### Test Driver
+
+Given:
+
+#### C++
+
+[Link to C++ Solution](BookIndex.t.cpp)
+
+#### Java
+
+```Java
+import java.lang.*;
+import java.util.*;
+
+public class Solution {
+    public static class Page {
+        public final String content;
+        public final int pageNumber;
+
+        public Page(final String content, final int pageNumber) {
+           this.content = content;
+           this.pageNumber = pageNumber;
+        }
+
+        public String[] getWords(){
+           return content.split(" ");
+        }
+
+        public int getPageNumber(){
+           return pageNumber;
+        }
+    }
+
+    public static class Book implements Iterable<Page> {
+
+        private final Page[] pages = new Page[] {
+           new Page("this is a sample page ", 1),
+           new Page("from a sample book with more than a page ", 2),
+           new Page("as a sample input", 3)
+        };
+
+        public Iterator<Page> iterator(){
+            return Arrays.asList(pages).iterator();
+        }
+    }
+}
+```
+
+#### JavaScript
+
+```javascript
+"use strict";
+
+// Sample book for testing, with punctuation added for extra fun
+// Punctuation may be removed if deemed too complex
+// Book is a simple array of strings, each strings representing a page
+
+let sampleBook = [
+    "this is a sample page,",
+    "from a sample book!! with more than a page...",
+    "as a sample-input"
+];
+
+```
+
+#### Python
+
+```Python
+
+def index(book):
+    pass
+
+
+def popularity_index(book):
+    pass
+
+
+def main():
+
+    sample_book = [("this is a sample page ", 1),
+                   ("from a sample book with more than a page ", 2),
+                   ("as a sample input", 3)]
+
+    print(index(sample_book))
+
+    #   -- Index (In no specific order of words) --
+    #   with:     [2]
+    #   is:       [1]
+    #   a:    #   [1,2,3]
+    #   input:    [3]
+    #   page:     [1,2]
+    #   from:     [2]
+    #   book:     [2]
+    #   more:     [2]
+    #   this:     [1]
+    #   sample:   [1,2,3]
+    #   as:       [3]
+    #   than:     [2]
+
+    print(popularity_index(sample_book))
+
+    #   -- Popularity Index (no specific order within group) --
+    #   a:        [1,2,3]           (3 times)
+    #   sample:   [1,2,3]           (3 times)
+    #   page:     [1,2]             (2 times)
+    #   with:     [2]               (1 time)
+    #   is:       [1]               (1 time)
+    #   input:    [3]               (1 time)
+    #   book:     [2]               (1 time)
+    #   from:     [2]               (1 time)
+    #   more:     [2]               (1 time)
+    #   this:     [1]               (1 time)
+    #   as:       [3]               (1 time)
+    #   than:     [2]               (1 time)
+
+if __name__ == '__main__':
+    main()
+```
+
+## Follow-up questions
+
+Q: If we know that a word will never appear more than X times in the entire
+book, can we optimize this further?
+
+A: For the popularity map we can keep a vector/array of size X instead of a
+sorted map where the numerical index represents the occurrence count. This is
+similar to the given C++ solution except that we make the
+lookup/insertion/removal cost constant when adding a word by using a vector
+instead of a sorted map.
+In Python, if the candidate already uses an OrderedDict this optimization
+doesn't help much as the lookup/insertion/removal operations are already O(1).
+
+
+Question 1: Suppose the book was very large (2 TB). How would you change your approach?
+
+Answer 1:
+
+- Split the book into chunks that can fit into memory (2gb or less).
+- Build the unsorted index of word to totalCount and pages for each chunk in
+  memory.
+- Write out the chunk's index in a sorted order of the words to a file.
+- Reduce pairs of the chunks' index files by merging them one line at a time
+  and writing out each merged line to a new merged index file.
+- Repeat until all chunks are reduced to one large merged index file (word sorted).
+- Now we need to sort the file according to the total number of occurrences of the
+  words
+- Use external sort to sort the large index file according to the number of
+  occurrences of words.
+- External sort is achieved by splitting the index file into chunks and sorting
+  in memory each chunk according to the number of occurrences of the words in the
+  chunk.
+- Then pairs of sorted chunks are reduced by merging them one line at a time
+  and writing the output to a merged file.
+
+Answer 2:
+
+- This will be a good follow-up question for a candidate who has advanced knowledge of distributed computing.
+
+  We can also compute the index of all the words and sort them by popularity using the famous MapReduce paradigm. The solution below chains two separate MapReduce tasks.
+
+ - The first MapReduce task
+
+   We will compute the number of times a word appears in the book and the pages they appear in.
+
+   The input to the Map task will be the page number and all the text from that page. The Map task will collect the output where the ‘key’ will be the word and value will be a tuple consisting of the number of times the word appears in the page and page number. The output will look like <word, (count, page_num)>.
+
+   The `Reduce` task will collect all the tuples for a particular key and will compute the aggregate count and list of page numbers. The output will look like <word, (count, [page numbers]).
+
+ - The second MapReduce task
+
+   This will take advantage of the internal sorting done by MapReduce itself. Map task’s output is sorted using ‘quicksort’ and the `Reduce` task’s output is sorted using ‘mergesort’.
+
+   We will take the output from the first MapReduce and swap the ‘word’ and ‘count’ values. The input to the map task will be <count, (word, [page numbers]). The Map task’s input will be sorted using quicksort, so all we need to do is output the input value.
+
+   Similarly, the input and output of the `Reduce` task will also be the same.
+
+ - The end result is a list of all the words sorted by the number of times they appear in the book and the pages they appear in.
+
+
+## Tags
+
+- interface design
+- data structures
+- hash map
+- stl
+- coding fluency easy
+- sre

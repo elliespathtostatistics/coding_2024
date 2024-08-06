@@ -23,83 +23,7 @@ def print_members(head = None):
 	return members_string
 
 
-def flatten_linked_list2(head):
-	def flatten_list(prev, curr):
-		
-		if curr is None:
-				return prev 
-		
-		# connect prev to cur
-		prev.next = curr
 
-		# save next node pointer to continue traversal after child nodes
-		next_node = curr.next 
-
-		# recursively flatten child nodes 
-		tail = flatten_list(curr, curr.child)
-		
-		# after flattening, curr node's child is set to None
-		curr.child = None 
-
-		# flatten w the saved next_node
-		return flatten_list(tail, next_node)
-
-	if head is None:
-		return None 
-
-	dummy = ListNode(0)
-
-	flatten_list(dummy, head)
-
-	return dummy.next 
-
-def flatten_linked_list3(head):
-		def flatten_list(prev, curr):
-			
-			if curr is None:
-				return prev 
-
-			if prev is None:
-				return 
-			
-			# connect prev to cur
-			prev.next = curr
-
-			# save next node pointer to continue traversal after child nodes
-			if curr.next:
-				print('first scenario hit')
-				next_node = curr.next 
-
-				next_next_node = curr.next.next 
-
-				curr.next = next_node
-
-				# recursively flatten child nodes 
-				tail = flatten_list(next_node, curr.child)
-				
-				# after flattening, curr node's child is set to None
-				curr.child = None 
-
-				# flatten w the saved next_node
-				return flatten_list(tail, next_node)
-
-			else:
-				print('second scenario hit')
-
-				# if there is no next node then just connect curr to child 
-
-				curr.next = curr.child 
-
-				curr.child = None 
-
-				return 
-
-
-		dummy = ListNode(0)
-
-		flatten_list(dummy, head)
-
-		return dummy.next
 
 
 def flatten_linked_list4(head):
@@ -110,7 +34,7 @@ def flatten_linked_list4(head):
 		# case 4) right and down, then go right by one first, then down and then connect down to next next
 	
 		def flatten_list(curr):
-			# logically the same as curr = curr.next 
+		
 			if curr.next and not curr.child:
 				return flatten_list(curr.next)
 
@@ -137,7 +61,7 @@ def flatten_linked_list4(head):
 
 					tail.next = next_next_node
 
-					#return flatten_list(tail)
+					flatten_list(tail)
 
 		flatten_list(head)
 		return head 
@@ -145,15 +69,7 @@ def flatten_linked_list4(head):
 
 		
 			
-class TreeNode:
-	def __init__(val, left = None, right = None):
-		self.val = val 
-		self.left = left
-		self.right = right
 
-class BST:
-	def __init__(root):
-		self.root = root
 
 
 def main1():

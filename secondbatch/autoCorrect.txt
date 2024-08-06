@@ -1,0 +1,116 @@
+## Summary
+
+Implement an autocorrect system. The system is initialized with a list of words ("dictionary"). The system's public interface will have one function/method called `correct`, which takes an input word and returns a corrected word.
+
+If the input word is in the dictionary, it should be returned as is. If the input word is "one character different" from a word in the dictionary, the respective dictionary word should be returned by the autocorrect. If the input word is not in the dictionary and is also not "one character different" from any word in the dictionary, it should be returned as is by the autocorrect.
+
+"One character different" means that there is exactly one position, in which the two words have a different character. Two words where there is one character missing, or one character extra in one of the words are not considered "one character different".
+
+## Problem Complexity Level
+
+  Coding Fluency: Medium
+  
+  Problem Solving: Medium
+  
+  Expected Completion Time: 25 minutes.
+
+## Problem Description  
+
+Implement a class (`Autocorrect`) that will accept a list of strings (words) in its constructor.
+
+The class will have one more additional public method, `correct`, which will take a single word as a parameter, and it will return a corrected word as its output.
+
+## Sample Inputs & Expected Outputs
+
+```python
+corrector = Autocorrect(["apple", "pear", "orange"])
+# exact matches
+corrector.correct("apple") -> "apple"
+corrector.correct("orange") -> "orange"
+# one mistake
+corrector.correct("apply") -> "apple"
+corrector.correct("bear") -> "pear"
+# not a match
+corrector.correct("apples") -> "apples" # not similar to apple, because it's longer
+corrector.correct("app") -> "app" # not similar to apple, because it's shorter
+corrector.correct("aisle") -> "aisle" # not similar to apple, because it has 2 mistakes
+```
+
+## Solution
+
+### Make a list of all similar words
+This solution builds a dictionary of all possible accepted words - i.e.
+all words from the word list with 0 or 1 mistakes.
+
+The size of the dictionary will be of the order of `O(A * L * N)`, where `N` is the number
+of words, `L` is the average word length, and `A` is the size of the alphabet.
+
+[Python implementation](autocorrect-all-options.py)
+
+### Make a list of words with wildcards
+This solution builds a dictionary of all possible accepted words with
+0 or 1 wildcard. The special wildcard character '*' is assumed to never appear
+in any word.
+
+The dictionary contains each word from the word list, and also an option
+with each single letter replaced by the wildcard.
+
+To do the fuzzy search, we need to search for the exact word, and if
+unsuccessful then also for each option with 1 wildcard. That means that
+the `correct` method has to do O(L) searches, where L is the length of the
+word.
+
+However, the size of the dictionary will be `O(L * N)`, where `N` is the number of words
+and `L` is the average length of the words.
+
+[Python implementation](autocorrect-wildcard.py)
+
+### Use a trie with backtracking
+In this solution, we construct a [trie structure](https://en.wikipedia.org/wiki/Trie) from all given
+words from the wordlist. The size of the trie is therefore limited by
+the sum of sizes of the given words, but it can in practice be smaller
+than the sum of the lengths because words' common prefixes will only be
+stored once.
+
+However, the `correct` method gets more complicated, because it has to
+traverse the trie, but also backtrack in case the match is not exact.
+We do that by using a stack of states to visit, following the happy path
+first, and falling back to options with 1 mistake if it fails.
+The number of states that the `correct` method will have to probe in an
+unsuccessful search is of the order `O(A * L)`, where `L` is the length of
+the word and `A` is the size of the alphabet.
+
+[Python implementation](autocorrect-full-trie.py)
+
+## Follow up questions
+
+### Pros and cons
+Each of the solutions explained above have some pluses and some minuses. Depending on which solution approach the candidate used, ask them about the drawbacks of that solution, and see if they can come up with a different solution.
+
+The complete dictionary solution (first solution above) builds a dictionary of all possible similar words, which uses a lot of memory. On the plus side, looking up any word is done in constant time.
+
+The wildcard dictionary solution reduces the memory footprint, in exchange for multiple lookups required to find or discard a word.
+
+The trie solution can theoretically use the least amount of memory - because common prefixes of multiple words are stored together, but the lookup is the most complex of the three solutions, and has the worst time complexity. It could be improved by using a wildcard approach (or a mistake counter while traversing the trie), but that would complicate the solution further.
+
+### Multi-user extension
+We extend the interface - the `correct` method will take two parameters: the word to correct, and a user id (an integer). Multiple users are using the autocorrect system, and we want to find out for example:
+* what is most often mis-spelled word (word with 1 mistake) for each user?
+* which word has been mis-spelled by the most users?
+* which words from the original dictionary have not been typed by any user (exactly or with 1 mistake), and are candidates for removal from the dictionary?
+
+These follow up questions will lead to some hashmap based data structures. In senior candidate interviews, we can follow up with questions about multi-threading and thread safety.
+
+## Tags
+
+  Which categories this assignment is targeting.  Please remove the tags that don't apply
+
+- data structures
+- hash map
+- memory management
+- string processing
+- coding fluency
+
+## Contacts
+
+* Filip Simek (fsimek1@bloomberg.net)

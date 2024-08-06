@@ -1,0 +1,161 @@
+[![](https://badges.dev.bloomberg.com/badge/Notice/This%20question%20has%20been%20reported%20as%20leaked./yellow?icon=github)](https://bbgithub.dev.bloomberg.com/interview-questions/coding-questions/issues/887)
+
+## Problem Description
+
+At Bloomberg we usually run around finding meeting rooms. In order to understand our usage better, we would like to implement a system that is checking what is the maximum number of meeting rooms that are occupied in parallel.
+Given a list of start and end times for meetings, find the **minimum number of rooms** required to accommodate all the meetings. Another way of thinking about this is to find the **maximum number of meetings** that overlap during some period of time.
+
+## Expected Completion Time
+
+35 Minutes
+
+## Problem Complexity Level
+
+  Coding Fluency: Medium
+
+  Problem Solving: Hard
+  
+## Questions the candidate might ask
+
+- What is the input format?
+
+  Input is a list of (start, end) times representing meetings. Eg [(1,2), (3,4)] represents 2 meetings, one starting at
+  1 and ending at 2 and another one starting at 3 and ending at 4
+
+- Are we expecting timestamps for start/end time of the meeting or integers?
+
+Meeting start and end times are defined with positive integers not timestamps and they aren't ranging only from 0 to 24,
+it can be any value.
+- Is the input valid or require validation ? (eg. start time is always before end time)
+
+For the simplicity we will assume that the input is validated and doesn't require any changes.
+
+## Sample inputs - Expected outputs
+
+Array of pairs, and every pair represents the start and end of a meeting.
+- [(1,2), (3,4)] - 1 as meetings don't overlap
+- [(1,5), (3,6), (8,9)] - 2 as meetings (1,5) and (3,6) overlap
+- [(2,5), (4,7), (3,9), (1,5), (10, 20)] - 4 as meetings (1,5), (2,5), (3,9), (4,7) overlap
+
+## Input corner cases
+
+1. No meetings at the same time
+2. All meetings simultaneously
+3. Meetings that start one after each other which are not overlapping (eg. 2 meetings (3,4) and (4,5) are not overlapping)
+
+## Solution
+
+### Visualization of sample case three, helps hint towards ideal solution
+```
+1  2  3  4  5  6  7  8  9  10 ... 20
++-----------------------------------+
+   xxxxxxxxx
+         xxxxxxxxx
+      xxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxx
+                           xxxxxxx
+```
+
+The solution is to split the intervals and keep track if the number is a start or an end. After that, sort the numbers
+and iterate trough the numbers. When encountering a start, count up and when end count down. The highest value of the count
+is the maximum.
+
+### Design
+
+N/A
+
+### Data structures
+
+Array
+
+### Implementation
+
+```python
+from operator import itemgetter, attrgetter
+
+
+class IntervalInput(object):
+    def __init__(self, value, start):
+        self.value = value
+        self.is_start = start
+
+
+def split_intervals(intervals):
+    data = []
+    for start, end in intervals:
+        data.extend([IntervalInput(start, 1), IntervalInput(end, 0)])
+
+    return data
+
+
+def maximum_overlapping_intervals(intervals):
+    splitted_intervals = split_intervals(intervals)
+
+    sorted_intervals = sorted(splitted_intervals, key=attrgetter('value', 'is_start'))
+
+    counter = 0
+    max_intervals = 0
+    for interval in sorted_intervals:
+        counter += 1 if interval.is_start else -1
+        max_intervals = max(max_intervals, counter)
+
+    return max_intervals
+  ```
+  A C++ solution can be found at [Link to C++ Solution](meetingRooms.t.cpp)
+
+  The IntervalOutput class is not required. A tuple can be used instead if wanted. (value, is_start)
+
+### Runtime complexity
+
+O(nlogn)
+
+### Memory usage
+
+O(n)
+
+Another simple solutions is to create a tree map repesenting all the start and end times in the input intervals. Iterate over the intervals, for the start time, the map value is incremented by 1. For the end time, the map value is decremented by 1. Loop over the created map, and get the maximum number of rooms at each loop while summing the map values.
+
+```cpp
+struct Meeting {
+    int start;
+    int end;
+    Meeting(int s, int e) : start(s), end(e) {}
+};
+
+int getMinRoomsCount(vector<Meeting>& intervals) {
+    map<int, int> meetTimes;
+    for (auto interval : intervals) {
+        ++meetTimes[interval.start];
+        --meetTimes[interval.end];
+    }
+    int rooms = 0, ans = 0;
+    for (auto meetTime : meetTimes) {
+        ans = max(ans, rooms += meetTime.second);
+    }
+    return ans;
+}
+```
+The time complexity is O(N Log N) and the memory complexity is O(N).
+
+## Test Driver
+
+```python
+maximum_overlapping_intervals([(2, 7), (1, 8), (4, 11), (3, 5), (8, 10), (6, 7), (15, 20)])
+maximum_overlapping_intervals([])
+maximum_overlapping_intervals([(1, 2), (3, 4), (5, 6)])
+maximum_overlapping_intervals([(1, 2), (1, 2), (1, 2)])
+maximum_overlapping_intervals([(3, 5), (4, 6), (5, 7)])
+```
+## Follow up questions
+
+1. Can we find the meeting with the maximum overlap?
+
+## Tags
+- sorting,
+- array
+- coding fluency medium
+- sre
+
+## Contacts
+
+Erik-Cristian Seulean

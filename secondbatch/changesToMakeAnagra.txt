@@ -1,0 +1,160 @@
+## Problem Description
+
+  Find out how close two words are to being anagrams of each other.
+  A string s1 is an anagram of another string s2 if the same characters exist in both s1 and s2 in any order.
+
+  Write a function which accepts two strings, and returns the minimum number of letters
+  that must be changed to make a word an anagram of another?
+
+  For example, to make 'bond' an anagram of 'down' you need to change 1 letter: 'b' to 'w'.
+
+  If either string contains a number or the strings are different lengths, throw an exception.
+
+## Expected Completion Time
+
+  Usually takes about 15 to 20 minutes.
+
+## Problem Complexity Level
+
+  Coding Fluency: Easy
+
+  Problem Solving: Medium
+
+## Questions the candidate might ask
+
+  Sometimes the candidate expects to have to calculate how to do the change, we only require the number of changes required.
+
+## Sample inputs - Expected outputs
+
+```
+| input1 | input2 | answer |
+| ------ | ------ | ------ |
+| abba   | bbaa   | 0      |
+| bond   | down   | 1      |
+| xxxx   | yyyy   | 4      |
+| xxyy   | xxxx   | 2      |
+| xxx1   | xxxx   | Throw Exception |
+| xxyyz  | xxxx   | Throw Exception |
+```
+
+## Input corner cases
+
+  - The empty string is always an anagram of itself so the answer should be 0.
+  - If the strings are not the same length then this is an input error (throw exception)
+  - If the strings contain non-alphabetic characters this is also an input error (throw exception)
+
+## Solution
+
+### C++
+
+[Link to C++ Solution](ChangesToMakeAnagram.t.cpp)
+
+### Python
+
+```python
+from collections import defaultdict, Counter
+from typing import Iterable
+
+
+def valid_inputs(input1: Iterable, input2: Iterable) -> bool:
+    return (
+        len(input1) == len(input2)
+        and all(s.isalpha() for s in input1)
+        and all(s.isalpha() for s in input2)
+    )
+
+
+# Variant 1: looping over inputs
+def changes_to_make_anagram(input1: str, input2: str) -> int:
+
+    if not valid_inputs(input1, input2):
+        raise ValueError
+
+    total_steps = 0
+    counter = defaultdict(int)
+    for i in input1:
+        counter[i] += 1
+
+    for i in input2:
+        counter[i] -= 1
+
+    for i in counter.values():
+        if i > 0:
+            total_steps += i
+
+    return total_steps
+
+
+# Variant 2: using dictionary arithmetic
+def changes_to_make_anagram1(input1: str, input2: str) -> int:
+
+    if not valid_inputs(input1, input2):
+        raise ValueError
+
+    count1, count2 = Counter(input1), Counter(input2)
+
+    diff = (count1 - count2) + (count2 - count1)
+
+    total_steps = sum(diff.values()) / 2
+
+    return total_steps
+```
+
+### Design
+
+  Mostly some variation of counting how many times each character occurs in each string, can either
+  - Count up input1 and down for input2 (this gives the difference straight away)
+  - Count both separately and then perform a difference between the two answers
+
+  The answer is then either:
+  - The sum of all positive differences
+  - Half the sum of the absolute differences (many candidates do this but miss that it double counts)
+
+### Data structures
+
+  A simple array can be used, but often a hashmap or simple map is used instead.
+
+### Implementation
+
+  Full or partial implementation of the problem, snippets of the code that can be copied/pasted for the candidate (e.g. class skeleton, already implemented objects that we want candidate to use)
+
+### Runtime complexity
+
+  The complexity is independent the data structure used as the number of elements in any data structure would be bounded by the length of the alphabet (a constant size) so all lookups would be constant time.
+
+### Memory usage
+
+  The test answer is constant (an array of 26 elements), but other options are at worse n.
+
+## Test Driver
+
+### C++
+
+[Link to C++ Solution](ChangesToMakeAnagram.t.cpp)
+
+### Python
+
+```python
+assert changes_to_make_anagram("abba", "bbaa") == 0
+assert changes_to_make_anagram("bond", "down") == 1
+assert changes_to_make_anagram("xxxx", "yyyy") == 4
+assert changes_to_make_anagram("xxyy", "xxxx") == 2
+```
+
+## Follow-up questions
+
+  Ask about different data structures, if a non-linear solution is given point back to the input constraints to see
+  if this helps the candidate.
+
+  If the optimal linear solution is given, ask how the solution might be affected if we had to cope with chinese characters.
+
+## Tags
+- data structures
+- hash map
+- algorithms
+- coding fluency easy
+- sre
+
+## Contacts
+
+  Brian Blackmore - question originates from the CFA question bank

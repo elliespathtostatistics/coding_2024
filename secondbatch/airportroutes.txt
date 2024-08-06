@@ -1,0 +1,587 @@
+[![](https://badges.dev.bloomberg.com/badge/Notice/This%20question%20has%20been%20reported%20as%20leaked./yellow?icon=github)](https://bbgithub.dev.bloomberg.com/interview-questions/coding-questions/issues/945)
+
+## Summary
+
+Given one directional airport routes, devise a solution that can provide the path from Airport A to Airport B.
+
+## Problem Complexity Level
+
+  Coding Fluency: Medium
+
+  * The best solutions are using some sort of mapping data structure. The interviewee handling the cases for circular dependencies and thinking about this thoroughly adds to the level of a basic programming question. 
+
+  Problem Solving: Medium
+
+  * The candidate immediately should realize that this is a sort of a graph problem, and use the appropriate data structure to keeping track of airports easily. The pre processing and the circular dependency case adds to the basic level of problem. 
+
+  Expected Completion Time: 30 min
+
+## Problem Description
+
+  Implement 2 functions: one that adds a one-directional airport route between 2 airports, and second that prints out all possible routes between an origin and a destination. 
+  This could be done by implementing a class called AirMap that has two methods:
+
+	1- add_route(start, destination)
+		- adds a ONE WAY connecting flight from start to destination
+
+	2- print_all_routes(start, destination)
+		- prints all possible routes from start to destination irrespective of hops
+
+## Solution
+
+  A successful solution aims to build some form of a directed graph and implements Depth First Traversal algorithm. 
+  This can be in multiple ways, depending on data structures and the algorithm being picked (recursive/iterative)
+
+  It is important to split the solution for the candidate to two parts:
+  - Storing the route input as it comes, with an appropriate data structure
+  - Traversing the data structure to find the appropriate solution
+
+### Gotchas
+  
+  In their initial attempt at the solution, the candidate may not think about circular routes. You can either (a) Route the candidate to discover that ahead of writing the entire code, or (b) Have them solve the problem but walk them through with a simple route and have them realize the issue. Either way should be OK.
+
+  A recursive solution is easier for the candidate to keep track of the algorithm since the solution needs the same problem solved for each airport
+
+  Storing the solution vs printing it on the go: this can be left up to the candidate.
+
+
+### Design
+
+  - Start the traversal from source.
+  - Keep storing the visited vertices (airports) in a vector say 'cur_path'.
+  - If we reach the destination airport, print contents of cur_path.
+  - The important thing is to mark current vertices in a cur_path as visited also, so that the traversal doesn't go in a cycle.
+
+### Data structures
+
+  Different data structures can be used. The easiest solution uses some form of a map in most languages. This solution uses unordered_map to store all airports, unordered_set to store connected airports as well as visited.
+
+
+## Questions the candidate might ask
+
+**Question 1**: Must I design a system to enter or parse the raw routes?
+
+**Answer**: No, hard-coding the provided example as static data is fine. The focus of this problem is not on parsing, formatting, or user input.
+
+**Question 2**: What do I output if there are no routes from source to destination?
+
+**Answer**: Up to the interviewee, but special message is preferred over an empty output.
+
+**Question 3**: Can a source airport be same as destination airport? If so, do I output non-trivial routes then?
+
+**Answer**: Then route will consist of single(source) airport.
+
+**Question 4**: Can there be [multiple edges](https://en.wikipedia.org/wiki/Multiple_edges) and how do I treat them?
+
+**Answer**: They should be ignored.
+
+**Question 5:** Can I visit the same airport twice while composing a route?
+
+**Answer:** No.
+
+**Question 6:** Do these functions have to be part of a Class?
+
+**Answer:** Ideally, but not necessary.
+
+
+## Sample inputs - Expected outputs
+
+Given the following flight routes, print all possible routes between the airports C and D
+
+```
+  A ----> B
+  B ----> A
+  A ----> C
+  C ----> A
+  A ----> D
+  D ----> A
+  B ----> C
+  C ----> B
+  B ----> D
+  D ----> B
+```
+
+Expected output:
+
+```
+  C,A,B,D,
+  C,A,D,
+  C,B,A,D,
+  C,B,D,
+```
+
+## Input corner cases
+Find all routes from A to C
+
+No route example:
+```
+A ----> B
+C ----> B
+C ----> A
+```
+Expected output:
+```
+"No route was found" message or an empty output
+```
+
+Source equals destination example:
+Find all routes from A to A
+```
+A ----> B
+B ----> C
+C ----> A
+```
+Expected output:
+```
+A
+
+```
+### Runtime complexity
+
+  Runtime complexity analysis is quite complex, so **O(N!)** and **O(N! * N)** are quite good
+  and can be considered correct. Read below description to understand more precise estimate.
+  Time Complexity: **O((N-1)!)** where **N** is number of vertices (airports) in the graph.
+  Usually we don't care about summands like '-1' in big-O notation, but we can't do it with factorial parameters,
+  since withdrawing this '-1' would lead to the complexity to be multiplied by **N**.<br>
+  In the worst case scenario we have a [complete graph](https://en.wikipedia.org/wiki/Complete_graph)
+  where every sequence of vertices without repetitions is a valid route.
+  Since we have source and destination airports fixed, there are **O((N - 2)!)** ways to choose
+  and order all the other airports between them. Every route requires **O(N)** operations to be constructed
+  and written to the output, hence overall complexity is **O((N - 2)! * N) = O((N - 1)!)**
+
+### Memory usage
+
+  Since we disregard parallel edges, we will have to store at most **O(N^2)** edges.
+  We will also need several auxiliary data structures of size **O(N)** which
+  don't affect memory usage in terms of big-O notation.
+
+
+## Follow-up questions
+
+Can we optimize this solution further?
+
+We can precompute all airports that can reach destination airport via existing edges. It can be done by any graph traversal algorithm using inversed edges instead of the original ones.<br>
+While running backtracking we can ignore the airports that didn't make it to the precomputed list above.
+Please note that while it can be useful for some input sets it doesn't improve overall
+runtime complexity in the worst case where the precomputed list would contain all airports.
+
+### Warning
+Any such approach to track "dead ends" must be careful to drop them when it backtracks. See #584 for a full description.
+
+In short: once a node is considered a dead end, only paths that are prefixed by the current path can consider it to be a dead end,
+backtracking invalidates this information.
+
+#### Example:
+
+
+```
+     +---------------------------------------------+
+     |                                             |
++----+----+    +---------+    +---------+    +-----v---+
+|         +---->         +---->         +---->         |
+|    A    |    |    B    |    |    C    |    |    E    |
+|         <----+         <----+         <----+         |
++---------+    +---------+    +----+----+    +----^----+
+                                   |              |
+                                   |              |
+                              +----v----+         |
+                              |         |         |
+                              |    X    +---------+
+                              |         |
+                              +---------+
+                                   |
+                                   |
+                              +----v----+
+                              |         |
+                              |    D    |
+                              |         |
+                              +---------+
+```
+
+Note that the links are only `A -> E`, `X -> E` and `X -> D` (not the other way around). Suppose we are trying to go from A to D.
+
+Once we have visited `A,B,C`, we know `E` is not useful since we cannot go anywhere else (other than C, which we have visited already). E is a dead end **for any path starting `A,B,C`**
+
+- When we are considering a path `A,B,C` and have dead end node E ; any other path we consider starting with `A,B,C` should also treat E as a dead end.
+- If we could not find a path from E without cycles after visiting `A,B,C` we surely will not find one when we visit even more nodes
+- **However**, once we backtrack, this information is lost: knowing that E was a dead end after visiting `A,B,C` should not allow us to infer that E will still be a dead end when we have only visited `A,B` or even only `A` (for instance, `A,E,C,X,D`)
+
+
+A quick solution would be to pass the deadEnds nodes by value (so that they are copied) and keep track of each neighbor for the duration of our iteration.
+
+This gives us incremental deadEnds:
+
+- Any dead ends found after `A,B,C` will be used for any path we try from there
+- Paths longer than `A,B,C` will use this as a starting point, and potentially add more
+- But they will not influence the dead ends that `A,B,C` knows about once we backtrack
+- Any new deadEnds are dropped when we go back
+
+
+
+### Implementation
+
+#### C++
+```c++
+
+#include <iostream>
+#include <vector>
+#include <unordered_set>
+#include <string>
+#include <unordered_map>
+
+using namespace std;
+
+class AirMap {
+
+    private:
+
+      unordered_map<string, unordered_set<string> > m_airports;
+      void printRecursive(const string& src, const string& dest, vector<string>& cur_path, unordered_set<string>& visited);
+      void printPath(const vector<string>& cur_path);
+
+    public:
+
+      AirMap():m_airports() {}
+
+      void addRoute(const string& src, const string& dest);
+      void printAllRoutes(const string& src, const string& dest);
+};
+
+void AirMap::printPath(const vector<string>& cur_path){
+
+    vector<string>::const_iterator it;
+
+    for (it = cur_path.begin(); it != cur_path.end(); it++) {
+        cout << *it << "," ;
+    }
+
+    cout << endl;
+}
+
+void AirMap::addRoute(const string& src, const string& dest) {
+
+    m_airports[src].insert(dest);
+}
+
+void AirMap::printAllRoutes(const string& src, const string& dest){
+
+    vector<string> cur_path;
+    unordered_set<string> visited;
+
+    printRecursive(src, dest, cur_path, visited);
+}
+
+void AirMap::printRecursive(const string& src, const string& dest, vector<string>& cur_path, unordered_set<string>& visited){
+
+    unordered_map<string, unordered_set<string> >::const_iterator it = m_airports.find(src);
+
+    if (it == m_airports.end())
+      return;
+
+    cur_path.push_back(it->first);
+    visited.insert(it->first);
+
+    if (src == dest) {
+        printPath(cur_path);
+    } else {
+
+        unordered_set<string>::const_iterator dit;
+
+        for (dit = it->second.begin(); dit != it->second.end(); dit++) {
+            if (visited.find(*dit) == visited.end()) {
+                printRecursive(*dit, dest, cur_path, visited);
+            }
+        }
+    }
+
+    visited.erase(src);
+    cur_path.pop_back();
+}
+```
+
+#### C#
+```c#
+using System.Collections.Generic;
+
+public class Solution
+{
+    private static void Solve(string start,
+                              string destination,
+                              IDictionary<string, IList<string>> graph,
+                              ISet<string> visited,
+                              IList<string> routes,
+                              IList<string> currentRoute)
+    {
+        visited.Add(start);
+        currentRoute.Add(start);
+
+        if (start == destination)
+        {
+            routes.Add(string.Join(",", currentRoute));
+        }
+        else
+        {
+            if (graph.ContainsKey(start))
+            {
+                foreach (var neighbor in graph[start])
+                {
+                    if (!visited.Contains(neighbor))
+                    {
+                        Solve(neighbor,
+                              destination,
+                              graph,
+                              visited,
+                              routes,
+                              currentRoute);
+                    }
+                }
+            }
+        }
+
+        visited.Remove(start);
+        currentRoute.Remove(start);
+    }
+
+    public static IList<string> Solve(string start,
+                                      string destination,
+                                      IDictionary<string, IList<string>> graph)
+    {
+        var routes = new List<string>();
+        var currentRoute = new List<string>();
+        var visited = new HashSet<string>();
+        Solve(start, destination, graph, visited, routes, currentRoute);
+
+        return routes;
+    }
+}
+```
+
+#### GoLang
+
+See [airportroutes.go](airportroutes.go)
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
+func printRoute(route []string) {
+	println(strings.Join(route, "->"))
+}
+
+type RouteSet struct {
+	r map[string][]string
+}
+
+func NewRouteSet() *RouteSet {
+	return &RouteSet{r: make(map[string][]string)}
+}
+
+func (r *RouteSet) AddRoute(from, to string) {
+  r.r[from] = append(r.r[from], to)
+  if _, exists := r.r[to]; !exists {
+    r.r[to] = []string{}
+  }
+}
+
+func (r *RouteSet) printAllRoutes(from, to string, route []string, visited map[string]bool) error {
+	if from == to {
+		printRoute(route)
+		return nil
+	}
+	destinations, exists := r.r[from]
+	if !exists {
+		return fmt.Errorf("No airport %q", from)
+	}
+	visited[from] = true
+	for _, dest := range destinations {
+		_, alreadyVisited := visited[dest]
+		if alreadyVisited {
+			continue
+		}
+		err := r.printAllRoutes(dest, to, append(route, dest), visited)
+		if err != nil {
+			return err
+		}
+	}
+	delete(visited, from)
+	return nil
+}
+
+func (r *RouteSet) PrintAllRoutes(from, to string) error {
+	return r.printAllRoutes(from, to, []string{from}, make(map[string]bool))
+}
+
+func main() {
+	/* Input format: 
+	    source := argv[1], target := argv[2], 
+	    (from, to) := argv[3 + i*2], argv[4 + i*2]
+	C D
+	===
+	A B
+	B A
+	A C
+	C A
+	A D
+	D A
+	B C
+	C B
+	B D
+	D B
+	*/
+	r := NewRouteSet()
+	airports := os.Args[3:]
+	for i := 0; i < len(airports); i += 2 {
+		from, to := airports[i], airports[i+1]
+		r.AddRoute(from, to)
+	}
+	from, to := os.Args[1], os.Args[2]
+	err := r.PrintAllRoutes(from, to)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
+	}
+}
+```
+
+#### Other Solutions
+
+- A TypeScript solution can be found at [ts-solution.ts](ts-solution.ts)
+- A JavaScript solution can be found at [js-solution.js](js-solution.js)
+- A Python 3 solution can be found at [py3-solution.py](py3-solution.py)
+- A C# solution 1 can be found at [CSharp_Solution1.cs](CSharp_Solution1.cs)
+- A C# solution 2 can be found at [CSharp_Solution2.cs](CSharp_Solution2.cs)
+- A OCaml solution can be found at [ocamlsolution.ml](ocamlsolution.ml)
+
+## Test Driver
+
+### C++
+```c++
+int main(int argc, char** argv)
+{
+
+  AirMap map;
+  map.addRoute("A","B");
+  map.addRoute("B","A");
+  map.addRoute("B","D");
+  map.addRoute("A","D");
+  map.addRoute("A","C");
+  map.addRoute("C","A");
+  map.addRoute("C","B");
+  map.addRoute("B","C");
+  map.addRoute("D","A");
+  map.addRoute("D","B");
+
+  map.printAllRoutes("C", "D");
+  return 0;
+}
+```
+
+### C#
+```c#
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+
+public class Solution
+{
+    private static void AddUndirectedEdge(IDictionary<string, IList<string>> graph,
+                                          string vertex1,
+                                          string vertex2)
+    {
+        if (!graph.ContainsKey(vertex1))
+        {
+            graph[vertex1] = new List<string>();
+        }
+        if (!graph[vertex1].Contains(vertex2))
+        {
+            graph[vertex1].Add(vertex2);
+        }
+        if (!graph.ContainsKey(vertex2))
+        {
+            graph[vertex2] = new List<string>();
+        }
+        if (!graph[vertex2].Contains(vertex1))
+        {
+            graph[vertex2].Add(vertex1);
+        }
+    }
+
+    private static void AssertSolution(IDictionary<string, IList<string>> graph,
+                                       string start,
+                                       string destination,
+                                       IList<string> expectedResult)
+    {
+        var result = Solution.Solve(start, destination, graph);
+
+        Debug.Assert(expectedResult.SequenceEqual(result));
+    }
+
+    public static void Main()
+    {
+        var graph = new Dictionary<string, IList<string>>();
+        var expectedSolution = new List<string>();
+        AssertSolution(graph, "a", "b", expectedSolution);
+
+        graph.Clear();
+        AddUndirectedEdge(graph, "a", "b");
+        expectedSolution = new List<string>
+        {
+            "a,b",
+        };
+        AssertSolution(graph, "a", "b", expectedSolution);
+
+        graph.Clear();
+        AddUndirectedEdge(graph, "a", "b");
+        AddUndirectedEdge(graph, "a", "c");
+        expectedSolution = new List<string>
+        {
+            "a,b",
+        };
+        AssertSolution(graph, "a", "b", expectedSolution);
+
+        graph.Clear();
+        AddUndirectedEdge(graph, "a", "b");
+        AddUndirectedEdge(graph, "b", "c");
+        expectedSolution = new List<string>
+        {
+            "a,b,c",
+        };
+        AssertSolution(graph, "a", "c", expectedSolution);
+
+        graph.Clear();
+        AddUndirectedEdge(graph, "a", "b");
+        AddUndirectedEdge(graph, "a", "c");
+        AddUndirectedEdge(graph, "a", "d");
+        AddUndirectedEdge(graph, "b", "c");
+        AddUndirectedEdge(graph, "b", "d");
+        expectedSolution = new List<string>
+        {
+            "c,a,b,d", "c,a,d", "c,b,a,d", "c,b,d",
+        };
+        AssertSolution(graph, "c", "d", expectedSolution);
+    }
+}
+```
+
+## Tags
+- data structures
+- graphs
+- stl
+- algorithms
+- recursion
+- sre
+- coding fluency medium
+
+## Contacts
+
+- Natalya Cherneykina (ncherneykina@bloomberg.net)
+- Steven Gabarro (sgabarro@bloomberg.net) - JS solution
+- Francis Xavier Pulikotil (fpulikotil@bloomberg.net) - Python 3 solution
+- Ben Grimwade (bgrimwade1@bloomberg.net) - C# solution 1
+- Dmitri Mamrukov (dmamrukov1@bloomberg.net) - C# solution 2
+- Marius Ciubotariu (mciubotariu2@bloomberg.net) - Ocaml Solution
+- Oleg Kosenkov (okosenkov@bloomberg.net) - GoLang Solution

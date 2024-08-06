@@ -1,0 +1,241 @@
+[![](https://badges.dev.bloomberg.com/badge/Notice/This%20question%20has%20been%20reported%20as%20leaked./yellow?icon=github)](https://bbgithub.dev.bloomberg.com/interview-questions/coding-questions/pull/826)
+
+## Problem Description         
+Design and implement a module that provides a simple web browser history functionality.
+The module should be capable of capturing URLs one at a time and, upon request, provide
+the history of URLs visited in reverse chronological order (most recently visited first).
+Each URL should be listed only once.
+
+## Expected Completion Time               
+45 mins          
+
+## Problem Complexity Level                
+  Coding Fluency: Medium
+  
+  Problem Solving: Medium
+
+## Questions the candidate should ask             
+- What is the maximum number of URLs the module should record? 
+  It's important that the candidate ask this question on their own because it 
+  demonstrates their ability to recognize resources related risks and the long 
+  term reliability of their software. Of course if no limit is imposed on the 
+  number of URLs the module records then after running the browser for 
+  an extended period of time it'll run out of memory. The answer to this 
+  is that the limit should be given to the module at initialization time. When
+  the limit is to be exceeded, older URLs should be discarded from the history.
+- Should the module support deleting history?
+  Yes, sure you can support deleting all of the history. Selectively deleting 
+  URLs is not required.
+- Do I need to persist the data?
+  No, the module should use volatile storage.
+
+## Sample inputs - Expected outputs                
+Suppose I visit: http://www.bloomberg.com/article/123, then I visit 
+http://www.google.com/search?keywords=hello and then I visit http://www.bbc.com.
+Then the expected output should be:        
+```
+http://www.bbc.com           
+http://www.google.com/search?keywords=hello       
+http://www.bloomberg.com/article/123        
+```
+
+Another example of inputs is to visit http://www.bloomberg.com/article/123, then
+visit http://www.bbc.com, then visit http://www.cnn.com then visit 
+http://www.bbc.com again. The expected output for this case is:        
+```
+http://www.bbc.com          
+http://www.cnn.com            
+http://www.bloomberg.com/article/123           
+```
+
+## Input corner cases             
+- Empty string
+- maxNumOfURLs=0
+- maxNumOfURLs=1
+
+## Solution            
+### Interface Design            
+  The candidate should be able to design the interface of the module to support
+  3 basic functionalities. One to add the URL visited to the history, another 
+  to view the history and an optional third to delete all of the history. The 
+  module should also take in the maximum number of URLs to be recorded as an 
+  initialization parameter. In the case of object oriented languages, this is
+  a constructor parameter.           
+  
+  Error handling can be done either by using rcodes or via throwing exceptions.
+  This will impact the interface design where in the case of rcodes, an Error 
+  enum can be used to represent the different errors that the module can 
+  experience or returning an int is fine as well. Throwing exceptions will make
+  the return type to be void in most cases.       
+  
+```c++
+  class HistoryManager {
+    public:
+    
+    //////////////
+    //Constructor
+    //////////////
+    HistoryManager(std::size_t maxNumOfURLs);
+        // Creates an instance of the HistoryManager class that holds up to
+        // a maximum of maxNumOfURLs URLs
+    
+    ////////////////////////////////////
+    //Public interface using int rcodes
+    ////////////////////////////////////
+    int recordVisit(const std::string& url);
+        // Records a visit to url in the history manager
+
+    std::vector<std::string> getAll() const;
+        // Retrieves all the urls visited in chronological order (most 
+        // recently visited first)
+
+    int clear();
+        // Deletes all history
+  };
+```
+
+### Data structures               
+  The choice of data structure for this problem is heavily influenced by the 
+  desire to optimize the runtime complexity of the most commonly used 
+  function: recordVisit. The desired runtime complexity is constant time.           
+
+  The candidate needs to record the URLs visited and capture the order of the 
+  visits, so containers such as vectors and linked lists will all satisfy this 
+  requirement. In the case of linked list, the algorithm can append to the 
+  list's tail in constant time and in case of reaching maxNumOfURLs, trim the 
+  old URLs off the head in constant time as well. In the case of vectors, given
+  that the vector size will be pre-allocated to maxNumOfURLs (so that no vector
+  growth is needed), the algorithm can also achieve constant time for the 
+  recordVisit function if implemented as a circular buffer with a indicator to 
+  the buffer beginning.           
+  
+  However, because no duplicate URLs are allowed, the algorithm will need to 
+  check and remove all duplicates. The most efficient way to achieve this is to 
+  use a linked list and move the existing node to the list's tail. The candidate
+  is expected to prefer linked lists over vectors and explain why (constant 
+  time moving of elements vs linear time in the case of vectors).        
+
+  Linked lists alone won't yield constant time performance of the recordVisit 
+  function, since the algorithm will need to find the duplicate URL in the list
+  first before moving it to the list's tail. Finding the duplicates will need 
+  to be done in constant time as well. The natural data structure to think of 
+  when constant time lookup is desired is hash tables. Using hash tables and 
+  linked lists, the candidate should be able to solve the problem in constant 
+  time.            
+
+  One last tricky situation that the candidate can run into, is deciding what 
+  should be the value stored for each key the hash table. Some candidates think 
+  of storing the index of the node in the linked list, but this solution will 
+  yield linear time since linked list indexing takes linear time. The optimal 
+  solution is to store a pointer to the linked list node.        
+
+### Implementation
+
+#### Python
+
+There's a short solution if we allow using the standard library:
+
+```python
+from collections import OrderedDict
+class BrowserHistory(object):
+    def __init__(self):
+        self._urls = OrderedDict()
+
+    def add(self, url):
+        if url in self._urls:
+            del self._urls[url]
+        self._urls[url] = None
+
+    def retrieve(self):
+        for url in reversed(self._urls.keys()):
+            yield url
+```
+
+Or we can simulate the OrderedDict as a map and LinkedList:
+
+```python
+# The linked list implementation may be made optional, as long as the interviewee defines the interface
+class Node(object):
+    def __init__(self, data, previous=None, following=None):
+        self.data = data
+        self.previous = previous
+        self.following = following
+
+
+class LinkedList(object):
+    def __init__(self):
+        self.head = None
+        self.tail = None
+
+    def append(self, data):
+        node = Node(data, previous=self.tail)
+        if self.tail:
+            self.tail.following = node
+        self.tail = node
+        if self.head is None:
+            self.head = node
+        return node
+
+    def r_iter(self):
+        at = self.tail
+        while at:
+            yield at.data
+            at = at.previous
+
+    def remove(self, node):
+        if self.head is node:
+            self.head = self.head.following
+        if self.tail is node:
+            self.tail = self.tail.previous
+        if node.following:
+            node.following.previous = node.previous
+        if node.previous:
+            node.previous.following = node.following
+
+
+class BrowserHistory(object):
+    def __init__(self):
+        """python has a double linked list (deque) but note that only supports
+         constant time remove/add from the head or tail (so for best outcome we actually need
+         to implement this ourselves;
+         the implementation can be restricted only for functions used by the browser history"""
+        self._urls = LinkedList()
+        self._url_to_node = {}
+
+    def add(self, url):
+        node = self._urls.append(data=url)
+        if url in self._url_to_node:
+            self._urls.remove(self._url_to_node[url])
+        self._url_to_node[url] = node
+
+    def retrieve(self):
+        # we need reverse order, as we appended elements to the end of the double linked list
+        for url in self._urls.r_iter():
+            yield url
+```
+
+#### C++14
+[Link to C++ Solution](BrowserHistory.t.cpp)
+
+### Runtime complexity
+- recordVisit: Constant time         
+- getAll:      Linear time in maxNumOfURLs            
+- clear:       Linear time in maxNumOfURLs            
+
+### Memory usage
+  Linear in maxNumOfURLs
+
+### Test Driver            
+[Link to C++ Solution](BrowserHistory.t.cpp)
+
+## Follow up questions:
+- How to implement autocomplete? Using a Trie
+- Discuss the differences between linked lists and vectors in terms of memory layout and performance impact
+
+## Tags
+- Data Structures
+- Pointers
+- Interface Design
+- Linked List
+- sre
+- coding fluency medium

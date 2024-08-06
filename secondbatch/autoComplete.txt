@@ -1,0 +1,394 @@
+## Problem Description
+
+Let's design a very basic version of Auto Complete.
+
+Create a program that has two parts:
+
+-a "training" section that takes in data and based on bigram frequency (what word follows the next word most frequently) tracks how frequently one word is followed by others.
+
+-an API that, given a word that it "knows", will give back the most likely word to follow it.
+
+Sample Data:
+```javascript
+trainingData = [
+["I", "am", "Sam"],
+["Sam", "I", "am"],
+["Green", "Eggs", "I", "like"],
+["Green", "Eggs", "and", "ham"]
+]
+```
+
+Given this data for training, if the API were to receive `"I"`,
+it would return `"am"`.
+
+First, using a class or function called AutoComplete, accept data and train your model using bigram frequency.
+
+
+Next, create a helper method that will just print/log the frequency of each word on separate lines.
+
+Then, once that's in place, create a function or class method called `predict(word)` that accepts a string and gives back the most likely word to come after it.
+
+## Expected Completion Time
+
+Parts 1 + 2:  20-45 minutes.
+
+Follow-ups: 15+ minutes
+
+As a discussion topic only, parts 1 and 2, no code:  10-15 minutes.
+
+## Problem Complexity Level
+
+  Coding Fluency: Easy
+
+  Problem Solving: Medium
+
+## Questions the candidate might ask
+
+### Should we check for empty or null inputs?
+
+No, assume good input as a precondition.
+
+### Do we care about case sensitivity or punctuation?
+
+No, let's assume no punctuation and that we only care about pairing/returning exact word combos.
+
+### What about if the word has the same bigram frequency with multiple words?
+
+For now, let's just worry about giving back ANY/EITHER "most frequent" answer, later we may have time to discuss optimization.
+
+### What if a word doesn't have training info for its most frequent pair?
+
+We should return an empty string.
+
+## Sample inputs - Expected outputs
+
+    "I" -> "am"
+    "Sam" -> "I"
+    "am" -> "Sam"
+    "Green" -> "Eggs"
+    "Eggs" -> "I" || "and"
+    "like" -> ""
+
+
+## Input corner cases
+
+Any input that was not in the training set or the word "like" which has no pair.
+
+## Solution
+
+[Link to C++ Solution](AutoComplete.t.cpp)
+
+### Part 1: Finding the right data structure and training the model.
+
+For OOP languages, use of class would be wise since there will be shared state between the two functions that will optimize not having to recalculate values, but also be willing to discuss functional answers.
+
+A loop through the training data into a nested map is the easiest way to train the model, even though it is quadratic time to create the initial nested map with the structure of something like:
+
+```javascript
+    this.model = {
+        "I": {
+            "like": 1,
+            "am": 2
+        },
+    ...
+    }
+```
+An interviewee may also ask/know about a `max heap`, a data structure which requires slower insertion but a fast answer for what the maximum value is at a given moment. However this is not required for the task as it may be slower to implement.
+
+Finally, for this section, have them create a helper method that outputs the frequency for each word on a separate line.
+
+```javascript
+printFrequencies(){
+    for(let key in this.model){
+        console.log(`${key}:`, this.model[key] )
+    }
+}
+```
+
+### Part 2: Giving a response and optimizing the data structure
+
+In looking at the second part, we want to avoid re-training our model for every response, so well want to put ny training in a `constructor` or some place that is stateful.
+
+A naive answer for the API response section of the question may look something like this:
+
+```javascript
+    predict(word){
+        if(!(word in this.model)) return "";
+        const wordMap = this.model[word]
+        let maxWord = ""
+        let numTimes = 0
+        for(let key in wordMap){
+            if(wordMap[key] > numTimes){
+                maxWord = key
+                numTimes = wordMap[key]
+            }
+        }
+        return maxWord
+    }
+```
+
+However, this requires a search every time a user calls the API.
+
+A better approach would be to create a second map in the constructor after training that reduces the initial map to a simple key/value of the next most likely word, i.e:
+
+```javascript
+    this.model = {
+        "I": {
+            "like": 1,
+            "am": 2
+        },
+    ...
+    }
+
+    this.mostLikelyMap = {
+        "I": "am",
+        ...
+    }
+```
+
+With this approach and this work done in the constructor, we'd have quadratic time still for initialization but O(1) time for the API response which is much more likely to happen more frequently.
+
+
+### Design
+
+```javascript
+class AutoComplete {
+    constructor(trainingData){
+        // training here
+        // most likely map here
+    }
+
+    predict(word){
+        // return the most likely word here
+    }
+}
+```
+
+### Data structures
+
+This information is for the interviewer and should not be provided as a hint to
+the candidate.
+
+Part 1 will likely require a nested map or map of maps, or some implementation of a map with a max-heap.
+
+Part 2 will involve a simple map that is reduced from the initial map.
+
+This is a good question for early coders too, as most coders should be familiar with a hash-map data structure.
+
+### Implementation
+
+Here is a way to do part 1 (the training) using looping, a map and a class. Have them talk about Big O for time (O(n^2)) for this approach and how often this would run.
+
+Sample implementation for part 1 using class/loops:
+
+```javascript
+class AutoComplete {
+
+    constructor(data){
+        this.model = {}
+        //initialize model with words
+        data.forEach(sentenceArr => {
+            //iterate through each sentence
+            sentenceArr.forEach((word, i) => {
+                //let's see if there's a word to follow
+                let possibleNext = sentenceArr[i+1]
+                if(possibleNext){
+                    //make sure the map is initialized
+                    if(!this.model[word]){
+                        this.model[word] = {}
+                    }
+                    //increment or initialize following value to 1
+                     let currentTotal = this.model[word[possibleNext]
+                        this.model[word][possibleNext] = currentTotal ? currentTotal + 1 : 1
+
+                }
+            })
+        })
+    }
+
+    printFrequencies(){
+    for(let key in this.model){
+        console.log(`${key}:`, this.model[key])
+        }
+    }
+
+}
+```
+
+Sample implementation for part 2 using naive solution:
+
+```javascript
+class AutoComplete {
+    constructor(data){
+        this.model = {}
+        ...
+    }
+    predict(word){
+        if(!(word in this.model)) return "";
+        const wordMap = this.model[word]
+        let maxWord = ""
+        let numTimes = 0
+        for(let key in wordMap){
+            if(wordMap[key] > numTimes){
+                maxWord = key
+                numTimes = wordMap[key]
+            }
+        }
+        return maxWord
+    }
+}
+```
+
+Sample implementation for part 2 using double reduction and additional map (preferred solution):
+
+```javascript
+class AutoComplete {
+
+    constructor(data){
+
+        this.model = {}
+        this.mostLikely = {}
+
+
+        //initialize model with words
+        data.forEach(sentenceArr => {
+            //iterate through each sentence
+            sentenceArr.forEach((word, i) => {
+                //let's see if there's a word to follow
+                let possibleNext = sentenceArr[i+1]
+                if(possibleNext){
+                    //make sure the map is initialized
+                    if(!this.model[word]){
+                        this.model[word] = {}
+                    }
+                    //increment or initialize following value to 1
+                     let currentTotal = this.model[word][possibleNext]
+                        this.model[word][possibleNext] = currentTotal ? currentTotal + 1 : 1
+
+                }
+            })
+        })
+
+        //reduce the initial map once populated to the most likely map for O(1) prediction, also quadratic time for setup
+        for(let key in this.model){
+            const wordMap = this.model[key]
+            let maxWord = ""
+            let numTimes = 0
+            for(let secondary in wordMap){
+                if(wordMap[secondary] > numTimes){
+                maxWord = secondary
+                numTimes = wordMap[secondary]
+                }
+            }
+        this.mostLikely[key] = maxWord
+        }
+    }
+
+    printFrequencies(){
+        for(let key in this.model){
+            console.log(`${key}:`, this.model[key])
+        }
+    }
+
+    predict(word){
+        return this.mostLikely[word] ?? ""
+    }
+}
+```
+
+### Runtime complexity
+
+Part 1:
+
+```
+n = number of words total in all sentences
+O(n log n) n for the number of words and log n for insert to the map.
+
+helper:
+u = number of unique words in n (a Set of n)
+O(u)
+```
+
+Since we have to compare every word in every array against each other in the array and we have to iterate through all training data, part 1 works in quadratic time, simplified as O(n^2).
+
+The helper function to print frequencies is O(u) where u is the number of unique words in the input.
+
+Part 2:
+
+```
+Same as part 1:
+O(n log n) n for the number of words and log n for insert to the map.
++
+Iterating through the model to make the mostLikely map
+O(n^2)
+
+Access to the prediction model is O(1) after making the mostLikely map.
+```
+
+### Memory usage
+
+Part 1:  O(2n) or O(n) because we have to create keys for every word and then again for every other word.
+
+Part 2:  Same
+## Test Driver
+
+```javascript
+trainingData = [
+["I", "am", "Sam"],
+["Sam", "I", "am"],
+["Green", "Eggs", "I", "like"]
+]
+
+predictor = new AutoComplete(trainingData)
+
+console.log(predictor.predict("I") === "am")
+
+console.log(predictor.predict("Sam") === "I")
+
+console.log(predictor.predict("Green") === "Eggs")
+
+console.log(predictor.predict("like") === "")
+```
+
+## Follow up questions
+
+### Any optimizations?
+
+You could discuss a max-heap or a binary heap [https://en.wikipedia.org/wiki/Binary_heap] if they know about it. Creating a Binary Heap would lead to significantly slower insertion/access to lower nodes (O(log n) insertion) but could lead theoretically to eliminating the need for a nested map, if we only really cared about the most likely next word.
+
+### What if we had to deal with casing? Or punctuation?
+
+It would make the most sense to lowercase all training data input which would also cause our responses to be sent as lower case which makes more sense than upper case. Practically, we'd want to do this while populating the initial model.
+
+This however may make less sense as autocomplete generally does take into account casing.
+
+As for punctuation, with a larger model, we could discuss whether it makes more sense to treat punctuation as its own word for autocomplete or if we should make a punctuated word its own word, or both itself and a non-punctuated version with different scores?
+
+Asking a candidate to propose positions for these might be interesting.
+
+### How about customizations, other options?
+
+You could also propose to the candidate what if we wanted to provide an array of up to 3 choices to the user when they give us a word, like an iPhone does?
+
+How would our data structure and functions have to change? (mostLikely could have a key of mostLikely and a key of a slice of the top 3 choices, is one approach).
+
+What about if we wanted to provide whole completions of sentences like google does when typing a search? How would our data structures change then? (considering a structure like a binary search tree or a further nested map with pointers to sentences under keys of the combinations of words entered could be options.)
+
+What if we wanted to load a database to train when this is initialized and add our training data to that? How would we both read and write data?
+
+One more possible follow up would be assigning different ranks to pairs based on their position in the "sentence". One could pick an X which would be the score for the first pair, then X/2 for the second, X/4 for the third until it reduced to 1. So for X=4, the first pair would get a score of 4, the second 2, and the remaining all get 1. Have the code take X as a parameter.
+
+
+These are all good potential follow-ups that are also practical examples of autocompletes.
+
+
+## Tags
+- data structures
+- resource management
+- algorithms
+- coding fluency medium
+
+## Contacts
+
+- Nicholas Feitel
+- Zhenchao Lin <zlin174@bloomberg.net> - C++ solution

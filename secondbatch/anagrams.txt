@@ -1,0 +1,359 @@
+## Problem Description
+
+Write a function that checks whether two strings are anagrams of each other.
+A string s1 is an anagram of another string s2 if the same characters exist
+in both s1 and s2 in any order. For example: "abcd" and "cdab" are anagrams.
+Also "aabfffr" and "afbfraf" are anagrams.
+
+## Expected Completion Time
+
+20 mins
+
+## Problem Complexity Level
+
+  Coding Fluency: Easy
+  
+  Problem Solving: Easy
+
+## Questions the candidate might ask
+
+Q: Can we have duplicate characters?
+A: Yes
+
+Q: Are the characters ascii or unicode characters?
+A: You can assume they are ascii
+
+## Sample inputs - Expected outputs
+
+```
+"abcd", "cdab"          -> True
+"aabfffr", "afbfraf"    -> True
+"kdkd", "dkdr"          -> False
+```
+
+## Input corner cases
+
+- Empty strings
+- Empty string and non-empty string
+- Strings of different lengths
+- Strings with duplicate characters
+- Strings with the same characters but different number of duplicates.
+  For example: "abbcd", "abcd" are not anagrams
+         Also: "abbccd", "abcddd" are not anagrams either
+
+## Solution
+
+There are many solutions to this problem. One solution will be to sort both
+strings and then compare them character by character. This solution is not the
+most efficient in terms of runtime complexity as any comparison based sorting
+algorithm will take nlog(n) where n is the size of the larger string. A linear
+non comparison based sort (counting, or radix sort) can be employed here but
+it will incur memory usage that is comparable to the most optimal linear
+solution describe below.
+
+The most optimal solution is a linear solution with constant memory (the memory
+here is constant because it depends on the size of the character set of the
+strings which is constant). The idea is to count the number of occurrences of
+each character in s1 and compare that with the number of occurrences of the
+characters in s2. An optimization can be employed here to avoid requiring two
+counting buffers (one per string) where we count the number of occurrences of
+characters in s1 in the counter buffer and then decrement the number of
+occurrences of characters in s2 and eventually check if we have any non zero
+counts in the counting buffer.
+
+### Interface Design
+
+```c++
+bool areAnagrams(std::string_view s1, std::string_view s2);
+```
+
+### Data structures
+
+The only data structure to use in this solution will be an array of counters
+with enough elements to cover the full range of characters. Some candidates
+might use a hash table instead, which is also fine but less optimal and
+ignores the fact that the range of characters is well known and static.
+
+### Implementation
+
+#### C++
+
+[Link to C++ Solution](Anagram.t.cpp)
+
+#### Javascript
+
+```javascript
+function countByCharacter (string) {
+    let countMap = new Map();
+    for (let i = 0, len = string.length; i < len; i++) {
+        let ch = string[i];
+        if (countMap.has(ch)) {
+            countMap.set(ch, countMap.get(ch) + 1);
+        }
+        else {
+            countMap.set(ch, 1);
+        }
+    }
+    return countMap;
+}
+
+function areAnagrams (string1, string2) {
+    if (string1.length !== string2.length) {
+        return false;
+    }
+
+    const string1Map = countByCharacter(string1);
+
+    for (let i = 0, len = string2.length; i < len; i++) {
+        const s2char = string2[i];
+        const count = string1Map.get(s2char) || 0;
+        if (count === 0) {
+            return false;
+        }
+        string1Map.set(s2char, count - 1);
+    }
+
+    return true;
+}
+```
+
+#### C#
+
+```c#
+using System.Collections.Generic;
+
+public class Solution
+{
+    public static bool IsAnagram(string s1, string s2)
+    {
+        if (s1.Length != s2.Length)
+        {
+            return false;
+        }
+
+        var occurrences = new Dictionary<char, int>();
+        foreach (var ch in s1)
+        {
+            if (!occurrences.ContainsKey(ch))
+            {
+                occurrences[ch] = 0;
+            }
+            occurrences[ch] += 1;
+        }
+        foreach (var ch in s2)
+        {
+            if (!occurrences.ContainsKey(ch))
+            {
+                return false;
+            }
+            occurrences[ch] -= 1;
+            if (occurrences[ch] < 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+```
+
+#### GoLang
+
+```go
+package main
+
+import (
+	"testing"
+)
+
+func Anagram(a, b string) bool {
+	na, nb := len(a), len(b)
+	if na != nb {
+		return false
+	}
+	if na == 0 {
+		return true
+	}
+	m := make([]byte, 256)
+	for _, c := range a {
+		m[byte(c)] += 1
+	}
+	for _, c := range b {
+		i := byte(c)
+		x := m[i]
+		if x < 1 {
+			return false
+		}
+		m[i] -= 1
+	}
+	return true
+}
+
+func TestAnagram(t *testing.T) {
+	for _, v := range []struct {
+		a, b     string
+		expected bool
+	}{
+		{"", "", true},
+		{"", "A", false},
+		{"A", "", false},
+		{"A", "A", true},
+		{"A", "B", false},
+		{"AB", "BA", true},
+		{"ABBA", "BAAB", true},
+		{"ELVIS", "LIVES", true},
+		{"abcd", "cdab", true},
+		{"aabfffr", "afbfraf", true},
+		{"abbcd", "abcd", false},
+		{"abbccd", "abcddd", false},
+	} {
+		actual := Anagram(v.a, v.b)
+		switch {
+		case actual != v.expected:
+			t.Errorf("a=%q b=%q expected=%v", v.a, v.b, v.expected)
+		}
+	}
+}
+```
+
+#### Python
+
+##### Using Python Dictionaries
+```python
+from collections import defaultdict
+
+#Solution using Python dictionaries
+def are_anagrams(string1, string2):
+    dict1 = _to_dict(string1)
+    dict2 = _to_dict(string2)
+    return dict1 == dict2
+
+def _to_dict(s):
+    d = defaultdict(int)
+    for c in s:
+        d[c] += 1
+    return d
+```
+
+##### Using Python Counters
+
+```python
+from collections import Counter
+# Python solution using Counter. This solution uses power of Python library,
+# but a follow-up discussion is needed. Candidate need to explain how this
+# solution works, what does Counter() do, and what is runtime/memory complexity.
+# Candidate should also be prompted to solve if there was no Counter()
+
+def are_anagrams(string1, string2):
+    return Counter(string1) == Counter(string2)
+```
+
+#### Notes on the Javascript Implementation
+
+Because strings in Javascript are represented as UTF-16 integers and, although
+V8 will optimize contiguous Arrays of integers, they are formally just special
+cases of Objects, we believe the use of a hash representation is more natural
+and nearly as optimal.
+
+### Runtime complexity
+
+Linear
+
+### Memory usage
+
+Constant (Equal to the range of characters in the character set)
+
+### Test Driver
+
+#### C++
+
+[Link to C++ Solution](Anagram.t.cpp)
+
+#### Javascript
+
+```javascript
+function assert (val) {
+    if (!val) {
+        throw new Error("Assertion failed");
+    }
+}
+
+assert(areAnagrams("", ""));
+assert(areAnagrams("abc", "abc"));
+assert(areAnagrams("abc", "bac"));
+assert(!areAnagrams("abc", "abd"));
+assert(areAnagrams("aabbbc", "acbbba"));
+assert(!areAnagrams("aabbcc", "abbcbb"));
+assert(!areAnagrams("abx", ""));
+assert(!areAnagrams("", "rddf"));
+assert(areAnagrams("esswfrt", "rfswets"));
+assert(!areAnagrams("dfsdfe", "dfsd"));
+```
+
+#### C#
+
+```c#
+using System.Diagnostics;
+
+public class Solution
+{
+    public static void Main()
+    {
+        Debug.Assert(true == Solution.IsAnagram("", ""));
+        Debug.Assert(false == Solution.IsAnagram("a", "ab"));
+        Debug.Assert(true == Solution.IsAnagram("abc", "abc"));
+        Debug.Assert(true == Solution.IsAnagram("abc", "bac"));
+        Debug.Assert(false == Solution.IsAnagram("abc", "abd"));
+        Debug.Assert(true == Solution.IsAnagram("aabbbc", "acbbba"));
+        Debug.Assert(false == Solution.IsAnagram("abx", ""));
+        Debug.Assert(false == Solution.IsAnagram("", "rddf"));
+        Debug.Assert(true == Solution.IsAnagram("esswfrt", "rfswets"));
+        Debug.Assert(false == Solution.IsAnagram("dfsdfe", "dfsd"));
+        Debug.Assert(false == Solution.IsAnagram("ab", "aa"));
+        Debug.Assert(true == Solution.IsAnagram("abcdefghijklmnopqrstuvwxyz",
+                                                "zyxwvutsrqponmlkjihgfedcba"));
+    }
+}
+```
+
+#### Python
+
+```python
+from pytest import mark
+
+
+@mark.parametrize(
+    ("string1", "string2", "expected_output"),
+    [
+        ("", "", True),
+        ("", "A", False),
+        ("A", "", False),
+        ("A", "A", True),
+        ("A", "B", False),
+        ("AB", "BA", True),
+        ("ABBA", "BAAB", True),
+        ("ELVIS", "LIVES", True),
+    ],
+)
+def test_anagram(string1, string2, expected_output):
+    assert are_anagrams(string1, string2) == expected_output
+```
+
+## Follow up questions
+
+- How would your solution differ if the character set was unicode rather than
+ascii? Larger memory footprint
+
+## Tags
+
+- algorithms
+- hash map
+- sre
+- coding fluency easy
+
+## Contacts
+
+- Dmitri Mamrukov (dmamrukov1@bloomberg.net) - C# solution
+- Oleg Kosenkov (okosenkov@bloomberg.net) - GoLang solution
+- Zhenchao Lin (zlin174@bloomberg.net) - C++ solution

@@ -1,0 +1,213 @@
+## Problem Description
+
+  For given set of N elements print all possible subsets.
+
+## Expected Completion Time
+
+  20 min
+
+## Problem Complexity Level
+
+  Coding Fluency: Medium
+
+  Problem Solving: Medium
+
+## Questions the candidate might ask
+
+  * Are elements in the input set unique? *Yes*
+  * What is maximum value for N? *Reasonable small* (i.e. < 50)
+  * Does output order/format matter. *No*
+
+## Sample inputs - Expected outputs
+
+
+```
+  {"a"} ->
+       <- empty set
+    a
+```
+
+```
+  {"a", "b"} ->
+       <- empty set
+    a
+    b
+    a b
+```
+
+## Input corner cases
+
+  1. Empty input set yields to one empty subset.
+
+## Solution
+
+  1. Recursive
+  For given set of N elements all possible subsets would be:
+    * subsets of set of N - 1 element plus Nth element
+    * subsets of set of N - 1 element without Nth element
+
+  2. Bit manipulation
+  Reasonable N is practically less than 64 because number of possible subsets is 2^N.
+  So in order to iterate all possible subsets of N elements it enough to iterate unsigned integer up to 2^N.
+  Then for given counter value toggle set element according to k-th bit value, where 0 <= k < N.
+
+### Design
+
+  N/A
+
+### Data structures
+
+  N/A
+
+### Skeleton
+
+```cpp
+  // For given set of N elements print all possible subsets.
+  //
+  // Example output for set with one element {"a"} would be:
+  //     <- empty set
+  // a
+  //
+  // Example output for set of two elements {"a", "b"} would be:
+  //     <- empty set
+  // a
+  // b
+  // a b
+
+  #include <iostream>
+  #include <string>
+  #include <vector>
+
+  void printAllSubsets(const std::vector<std::string> &inputSet, std::ostream &os)
+  {
+
+  }
+
+  int main()
+  {
+      const std::vector<std::string> inputSet = {"a", "b", "c", "d"};
+      printAllSubsets(inputSet, std::cout);
+  }
+```
+
+### Recursive 1
+
+ [Link to the cpp solution.](all_subsets.t.cpp)
+
+### Recursive 2 - less space
+```py
+def printAllSubsets(groundSet):
+    allPossibleSubsetsUtil(groundSet, 0, [])
+
+def allPossibleSubsetsUtil(groundSet, index, partial_solution):
+    if index == len(groundSet):
+        for c in partial_solution:
+          print(c, end="")
+        print()
+    else:
+        allPossibleSubsetsUtil(groundSet, index+1, partial_solution)
+        partial_solution.append(groundSet[index])
+        allPossibleSubsetsUtil(groundSet, index+1, partial_solution)
+        partial_solution.pop()
+```
+
+### Bit manipulation
+
+ [Link to the cpp solution.](all_subsets.t.cpp)
+
+
+### Runtime complexity
+
+  O(N*2^N): There are 2^N subsets in the power set and for each subset, O(N) elements will need to be printed out.
+
+### Memory usage
+
+  * O(N^2) for recursive solution 1
+  * O(N) for recursive solution 2 - the call stack is only ever at most O(N) in length and `partial_solution` is recycled to hold the partial subset as it is being created as a dynamically allocated list, always of length O(N) (an analogous solution in C++ would use a `std::vector`)
+  * O(1) for bit manipulation solution
+
+## Test Driver
+
+ [Link to the cpp solution.](all_subsets.t.cpp)
+
+## GoLang Version Using Bit Manipulation
+
+```go
+package main
+
+import (
+	"math/bits"
+	"testing"
+)
+
+func AllSubsets(v []string) [][]string {
+	n := len(v)
+	m := 1 << n
+	r := make([][]string, 0, m) // total 2^n sets
+	for i := 0; i < m; i += 1 {
+		x := make([]string, 0, bits.OnesCount(uint(i))) // capacity is the number of set bits
+		for j := 0; j < n; j += 1 {
+			if i&(1<<j) != 0 {
+				x = append(x, v[j])
+			}
+		}
+		r = append(r, x)
+	}
+	return r
+}
+
+func TestAllSubsets(t *testing.T) {
+	for _, v := range []struct {
+		input  []string
+		output [][]string
+	}{
+		{[]string{"a", "b", "c", "d"},
+			[][]string{
+			    {},
+				{"a"},
+				{"b"},
+				{"a", "b"},
+				{"c"},
+				{"a", "c"},
+				{"b", "c"},
+				{"a", "b", "c"},
+				{"d"},
+				{"a", "d"},
+				{"b", "d"},
+				{"a", "b", "d"},
+				{"c", "d"},
+				{"a", "c", "d"},
+				{"b", "c", "d"},
+				{"a", "b", "c", "d"}}}} {
+		actual := AllSubsets(v.input)
+		if actual == nil || len(v.output) != len(actual) {
+			t.Errorf("actual=%v expected=%v", actual, v.output)
+		}
+		for i, a := range actual { // test all rows
+			for j, p := range v.output[i] { // test all columns
+				switch {
+				case len(a) <= j:
+					t.Errorf("actual=%v expected=%v", actual, v.output)
+				case a[j] != p:
+					t.Errorf("actual=%v expected=%v", actual, v.output)
+				}
+			}
+		}
+	}
+}
+```
+
+## Follow up questions
+
+  N/A
+
+## Tags
+
+- coding fluency medium
+- recursion
+- sre
+
+## Contacts
+
+- Andrey Kubarkov (akubarkov@bloomberg.net)
+- Oleg Kosenkov <okosenkov@bloomberg.net> - GoLang solution

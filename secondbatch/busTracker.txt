@@ -1,0 +1,172 @@
+## Problem Description
+
+You're creating a website where people can track the bus and figure out when to go to the station. The buses move between the stations in one direction. The goal is to find the station any bus is currently at or find how many stops away the nearest bus is to a requested station. Buses are never between stations, they are only stopped at a station.
+
+Your task is to implement this class:
+
+```typescript
+class BusTracker {
+    // station list is the list of stations delimited by a hyphen (-)
+    //   e.g. the station list can look like 1-2-3-4-5 and this will
+    //   correspond to a map that looks like 1 -> 2 -> 3 -> 4 -> 5
+    //   because buses only move in one direction, from left to right
+    // busLocations is the current list of buses and the stations they are
+    //   currently at
+    // these two fields provide the input to figure out the next two functions
+    constructor(stationList, busLocations) {}
+
+    // given the buses flow in one direction, find how many stops away
+    // the next bus is to the provided station
+    public nearestBusToStation(stationId: string): number {
+        return -1;
+    }
+
+    // given a bus id, return the station the bus is currently at
+    public getBusLocation(busId: number): string {
+        return "";
+    };
+}
+```
+
+----
+
+## Expected Completion Time
+
+15-20 minutes for first part of the implementation. Then follow ups below to expand the question's complexity.
+
+## Problem Complexity Level
+
+Medium
+
+## Questions the candidate might ask
+
+Q: How far away is a bus from a station if all the buses are after the station?
+A: We don't know, so `-1` or `null` is fine
+
+Q: Can functions be called for stations or buses that don't exist?
+A: The implementation should handle this case
+
+Q: Will one function be called more than another?
+A: Assume the constructor is called only once and the other functions are called extremely often, e.g. you want to optimize the functions that aren't the constructor.
+
+## Sample inputs - Expected outputs
+
+```text
+For station map: "A-B-C-D-E-F-G-H-I"
+And bus positions: { 1: "B", 2: "E" }
+
+busTracker.nearestBusToStation("A") // -1
+busTracker.nearestBusToStation("B") // 0
+busTracker.nearestBusToStation("C") // 1
+busTracker.nearestBusToStation("D") // 2
+busTracker.nearestBusToStation("E") // 0
+busTracker.nearestBusToStation("F") // 1
+busTracker.nearestBusToStation("G") // 2
+busTracker.nearestBusToStation("H") // 3
+busTracker.nearestBusToStation("I") // 4
+busTracker.getBusLocation(1); // B
+busTracker.getBusLocation(2); // E
+```
+
+## Input corner cases
+
+* No buses are on the map, so everything should be `-1` or `null`.
+
+## Solution
+
+Most efficient solution uses an array / vector to store the distances from each bus to the station. Then another map to hold where is bus currently is.
+
+### Data structures and Runtime/Space Complexity
+
+Ideal solution uses a combination of a hash map and an array. Hash map provides fast lookup required by `getBusLocation`. Array / vector allows to get a random element efficiently for `nearestBusToStation`.
+Complexity for setup: `O(s + b)` where `s` is the number of stations and `b` is the number of buses, but `O(s)` should be acceptible because generally `s >> b`.
+Complexity for function calls: O(1)
+Memory: O(N)
+
+Alternative solution uses an array to hold the stations and where the bus is.
+Complexity for all operations: `O(s)` where `s` is the number of stations.
+
+### Implementation
+
+[Javascript Solution](BusTracker.start.js)
+
+## Follow up questions
+
+### Move
+
+Once the above is completed, implement the `move()` function which moves all the buses forward by one station. No buses are added in this function, they only move the existing buses. Anything that is at the last station is removed.
+
+#### Expected Completion Time
+
+10-15 minutes for this follow up.
+
+#### Data structures and Runtime/Space Complexity
+
+A possible solution is to iterate over all the elements of the array of nearest buses, and also the current bus position map and update each record. This would make the time complexity of `move` `O(s + b)`, without the need to modify any other methods.
+
+It is also possible to achieve `O(1)` time complexity of `move`. Instead of shifting all records in the array and updating all values in the map, we can keep a new member variable `offset`, and increment it each time we `move()`. This offset can then be subtracted from the station index in the `nearestBusToStation()` method, and added to the bus positions in `getBusLocation()` (take care of corner cases, where the index will get out of range of our list of stations).
+
+#### Implementation
+
+[Javascript Solution](BusTracker.move.js) updating internal data structures on each move.
+
+### Add Bus
+
+Once the above is completed, implement the `addBus(number)` function which adds a bus onto the first station. No buses are moved in this function, they only add the bus to the first station. The number of the bus is an identifier that can be used to track this bus' position with `getBusLocation()`. You can assume that every bus number is unique.
+
+#### Expected Completion Time
+
+5-10 minutes for this follow up.
+
+#### Questions the candidate might ask
+
+Q: Can two buses be added at once?
+A: The implementation should be able to handle this
+
+#### Data structures and Runtime/Space Complexity
+
+A possible solution is to recalculate the nearest bus array every time a new bus is being added. This has the worst case complexity `O(s)` if there were no buses before and we have to update the whole array.
+
+We need to take care of having multiple buses at the same station (if they were added by two subsequent calls to `addBus` without any `move` in between).
+
+It should also be possible to achieve `O(1)` time complexity of adding a bus. TODO: describe that solution idea
+
+#### Implementation
+
+[Javascript Solution](BusTracker.addBus.js) updating internal data structures on each addBus.
+
+### Bi-Directional
+
+Once the above is completed, implement the same class, but with the station map going in two directions e.g. there are buses that travel north and buses that go in the opposite direction south. The two directions are completely independent of each other except that everything moves by one space when `move()` is called. For `addBus()`, the starting point of the original direction are still the first station, the starting point for the new direction are the last station because they go the opposite way. Also note that `addBus()` requires a new argument to know which direction the bus should be added to. Try to get the candidate to figure out what function signatures need to change for this, or what functions need to be updated to get this to work.
+
+#### Expected Completion Time
+
+10-20 minutes for this follow up to get a working solution. A discussion about what should change to make this solution happen is much faster if you are running out of time.
+
+#### Data structures and Runtime/Space Complexity
+
+The interface will need to change:
+* `busLocations` passed to the constructor will need to indicate, which direction is each of the buses heading
+* `addBus` will need a parameter specifying which direction is the new bus heading
+* `nearestBusToStation` will either take a new parameter specifying the direction that we are interested in, or return two values, one for each direction.
+
+Since both directions are independent, we can compose a bi-directional `BusTracker` from two single-directional `BusTracker` instances, one for each direction.
+
+Alternatively, we can create a `BusTracker` class with two sets of data structures for the two directions. We can also merge the data structures of both directions, but we need to keep information about the direction of each bus.
+
+#### Implementation
+
+* Javascript solution: [first variant](BusTracker.bidirectional.js), [second variant](BusTracker.bidirectional-alternative.js)
+
+* Cpp Solution: [Optimized O(1) for all the operations](./BusTracker.t.cpp)
+
+## Tags
+
+* data structures
+* hash map
+* algorithms
+* coding fluency medium
+
+## Contacts
+
+Simon Markowski @smarkows

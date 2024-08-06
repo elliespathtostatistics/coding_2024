@@ -1,0 +1,264 @@
+[![](https://badges.dev.bloomberg.com/badge/Notice/This%20question%20has%20been%20reported%20as%20leaked./yellow?icon=github)](https://bbgithub.dev.bloomberg.com/interview-questions/coding-questions/issues/847)
+
+## Problem Description  
+
+  You are building a global trading platform.  Your clients submit limit orders with a given time-to-live to a selection of banks, each of which has different trading hours.
+  You want to ensure that at least one of the selected banks is available to fill the order at any given time.  
+  
+  Design a function to test if the selected banks' collective trading hours cover the entire duration of the order without any gaps.
+
+## Expected Completion Time 
+
+  35 Minutes
+
+## Problem Complexity Level
+
+  Coding Fluency: Medium
+  
+  Problem Solving: Medium
+
+## Sample inputs - Expected outputs
+
+All the test cases use the following set of banks:
+
+* *09:00-16:00* Royal Bank of Scotland
+* *11:00-17:00* Morgan Stanley
+* *14:00-20:00* JP Morgan
+* *02:00-07:00* National Australia Bank
+
+Test case is order hours followed by a list of banks. TRADE VALID or TRADE FAILED.
+ 
+
+* Test case #1 - expected result: SUCCESS
+
+  *10:00-17:00*
+
+* Test case #2 - expected result: FAILURE
+
+  *15:00-21:00*
+ 
+* Test case #3 - expected result: FAILURE
+
+  *04:00-10:00*
+
+These test cases do not include wrapped bank or order hours.
+
+## Questions the candidate might ask
+
+Question: Do I have to handle more granular time windows? minutes and seconds?  - it is not a must and can be a followup question  
+
+Question: Do I have to handle periods that wrap around midnight? - it is not a must but can be a followup question
+
+  
+## Solution
+
+The following skeleton code can be given to the candidate or the candidate can choose to write in a different language. 
+
+[Link to C++ Solution](BankHours.t.cpp)
+
+The goal is to implement `canTrade`.
+
+### Solution 1:
+
+This solution is worst-case `O(N^2)` although the real-world performance would be quite variable based on the nature of the inputs - smaller orders are likely to be quite fast with this approach, for example, since they're very likely to fall entirely within a single bank's opening hours.
+This solution doesn't handle wraps around midnight.
+
+[Link to C++ Solution](BankHours.t.cpp)
+
+### Solution 2:  
+
+The following solution is `O(N^2)` and handles midnight wraps.
+
+It merges banks into a set of non-overlapping periods.
+
+It can then do a single linear scan through this merged list and will only return success if the result fully overlaps with any of the periods. 
+
+[Link to C++ Solution](BankHours.t.cpp)
+
+### Solution 3:  
+
+This solution is `O(NlogN)`. 
+
+The banks are sorted by the starting time of their opening hours, so a linear scan can be performed to check for gaps in the overlap with the trade.
+
+The sort operation is `O(NlogN)`. 
+
+If the list of banks was constant, it could be preprocessed, and the time complexity of `canTrade` would only be `O(N)`.
+
+This solution doesn't handle wraps around midnight.
+
+[Link to C++ Solution](BankHours.t.cpp)
+
+### Solution 4:   
+
+Building on the previous solution, this shows how to handle wrapping around midnight, by splitting all periods that wrap into their constituent halves to restore the invariant that end times are later than start times for all periods. There are probably more graceful approaches but this is a good illustration of the evolution a candidate might come up with.
+
+[Link to C++ Solution](BankHours.t.cpp)
+
+### Solution 5:  
+
+`O(N)` solution. No handling of midnight wraps.
+
+Very efficient for a large number of orders and a fixed list of banks.
+
+Taking advantage of bucketised times.
+
+[Link to C++ Solution](BankHours.t.cpp)
+
+## Test Driver
+
+[Link to C++ Solution](BankHours.t.cpp)
+
+## GoLang Solution
+
+This is same as solution 4 above:
+
+```go
+package main
+
+import (
+	"fmt"
+	"sort"
+	"testing"
+)
+
+type Time int16
+
+func TimeFromHoursMinutes(hours, minutes int16) Time {
+	return Time(hours*60 + minutes)
+}
+
+func TimeFromHours(hours int16) Time {
+	return TimeFromHoursMinutes(hours, 0)
+}
+
+func (t Time) Hour() int {
+	return int(t) / 60
+}
+
+func (t Time) Minute() int {
+	return int(t) % 60
+}
+
+func (t Time) String() string {
+	return fmt.Sprintf("%02d:%02d", t.Hour(), t.Minute())
+}
+
+func Less(a, b Time) bool {
+	return a < b
+}
+
+type Order struct {
+	StartTime, EndTime Time
+}
+
+func (x Order) String() string {
+	return fmt.Sprintf("start=%v end=%v", x.StartTime, x.EndTime)
+}
+
+func NewOrder(startTime, endTime Time) Order {
+	return Order{startTime, endTime}
+}
+
+func (x Order) WrapsToNextDay() bool {
+	return Less(x.EndTime, x.StartTime)
+}
+
+type Bank struct {
+	Name                     string
+	TradingStart, TradingEnd Time
+}
+
+func NewBank(name string, tradingStart, tradingEnd Time) Bank {
+	return Bank{Name: name, TradingStart: tradingStart, TradingEnd: tradingEnd}
+}
+
+func (x Bank) WrapsToNextDay() bool {
+	return Less(x.TradingEnd, x.TradingStart)
+}
+
+func (x Bank) String() string {
+	return fmt.Sprintf("tradingStart=%v tradingEnd=%v nextDayWrap=%v", x.TradingStart, x.TradingEnd, x.WrapsToNextDay())
+}
+
+func canTrade(order Order, banks []Bank) bool {
+	startTime := order.StartTime
+	for _, bank := range banks {
+		if startTime < bank.TradingStart {
+			return false
+		}
+		if startTime > bank.TradingEnd {
+			continue
+		}
+		if order.EndTime <= bank.TradingEnd {
+			return true
+		}
+		startTime = bank.TradingEnd
+	}
+	return false
+}
+
+func CanTrade(order Order, banks []Bank) bool {
+	orderedBanks := make([]Bank, 0, len(banks))
+	var (
+		endOfDay   = TimeFromHours(24)
+		startOfDay = TimeFromHours(0)
+	)
+	for _, b := range banks {
+		if b.WrapsToNextDay() {
+			orderedBanks = append(orderedBanks, NewBank(b.Name, b.TradingStart, endOfDay))
+			orderedBanks = append(orderedBanks, NewBank(b.Name, startOfDay, b.TradingEnd))
+		} else {
+			orderedBanks = append(orderedBanks, b)
+		}
+	}
+	sort.Slice(orderedBanks, func(i, j int) bool {
+		return Less(orderedBanks[i].TradingStart, orderedBanks[j].TradingStart)
+	})
+	if order.WrapsToNextDay() {
+		return canTrade(NewOrder(order.StartTime, endOfDay), orderedBanks) &&
+			canTrade(NewOrder(startOfDay, order.EndTime), orderedBanks)
+	}
+	return canTrade(order, orderedBanks)
+}
+
+func TestCanTrade(t *testing.T) {
+	banks := []Bank{
+		NewBank("Royal Bank of Scotland", TimeFromHours(9), TimeFromHours(16)),
+		NewBank("Morgan Stanley", TimeFromHours(11), TimeFromHours(17)),
+		NewBank("JP Morgan", TimeFromHours(14), TimeFromHours(20)),
+		NewBank("National Australia Bank", TimeFromHours(2), TimeFromHours(7)),
+	}
+	for _, tt := range []struct {
+		order    Order
+		canTrade bool
+	}{
+		{NewOrder(TimeFromHours(10), TimeFromHours(17)), true},
+		{NewOrder(TimeFromHours(10), TimeFromHours(18)), true},
+		{NewOrder(TimeFromHours(15), TimeFromHours(21)), false},
+		{NewOrder(TimeFromHours(4), TimeFromHours(10)), false},
+		{NewOrder(TimeFromHours(8), TimeFromHours(9)), false},
+		{NewOrder(TimeFromHoursMinutes(9, 30), TimeFromHoursMinutes(10, 30)), true},
+	} {
+		canTrade := CanTrade(tt.order, banks)
+		switch {
+		case canTrade != tt.canTrade:
+			t.Errorf("order=%q expected=%v actual=%v banks=%v", tt.order, tt.canTrade, canTrade, banks)
+		}
+	}
+}
+```
+  
+## Tags
+
+- sorting
+- array
+- coding fluency medium
+- sre
+
+## Contacts
+
+- Arnaud Meglio   
+- Mike Yuen
+- Oleg Kosenkov <okosenkov@bloomberg.net> - GoLang solution
+- Zhenchao Lin <zlin174@bloomberg.net> - C++ solution

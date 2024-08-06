@@ -1,0 +1,259 @@
+[![](https://badges.dev.bloomberg.com/badge/Notice/This%20question%20has%20been%20reported%20as%20leaked./yellow?icon=github)](https://bbgithub.dev.bloomberg.com/interview-questions/coding-questions/issues/852)
+
+## Problem Description
+
+Given a string with different types of parentheses viz. `{}`,`()` and `[]` determine if the string has balanced parentheses.
+
+Balanced parentheses means that the brackets should be ordered and matched correctly.
+
+## Expected Completion Time
+
+15-20 Minutes
+
+## Problem Complexity Level
+
+  Coding Fluency: Medium
+
+  Problem Solving: Easy
+
+## Questions the candidate might ask
+
+1. Are we given a unicode or an ASCII string?
+2. What language?
+3. What if we have no parentheses / an empty string?
+
+For 1-2, ask the candidate which answer would make it easier to solve and have the candidate solve the problem that way. Don't assume that you know which one makes it easier.
+For 3, we define any string with no parentheses as balanced.
+
+## Sample inputs - Expected outputs
+
+### Input
+
+```
+[1,{3},{4,(2*(4*2)/3)}]
+```
+
+### Output
+
+```
+True
+```
+
+## Input corner cases
+
+```
+1. "("      -- false, non-empty stack
+2. ""       -- true
+3. "2"      -- true
+4. ")"      -- false, potential pop from empty stack, incorrect count
+5. ")2*2("  -- false, potential pop from empty stack, correct count but incorrect order
+6. "(2*4]"  -- false, mismatched parentheses
+7. "([)]"   -- false, mismatched parentheses due to incorrect relative order
+```
+
+## Solution
+
+Use stack to push all the beginning parenthesis viz `(`,`{`,`[` and when encounter ending parenthesis viz `)`,`}`,`]` check if beginning parenthesis is the top element on stack. When processing is finished, return true if we have no beginning parentheses left on the stack.
+
+### Design
+
+Solution details relevant to design, interfaces
+
+### Data structures
+
+* Stack for iterating
+* Map for look ups
+
+### Implementation
+
+#### C++
+[Link to C++ Solution](checkParentheses.t.cpp)
+
+#### GoLang
+
+```go
+package main
+import (
+	"fmt"
+	"os"
+)
+var matchingPairs = map[rune]rune {
+	'}':'{',
+	')':'(',
+	']':'['}
+type stack struct {
+	d []rune
+}
+func (s*stack) push(r rune) {
+	s.d = append(s.d, r)
+}
+func (s*stack) pop() rune {
+	x := s.d[len(s.d) - 1]
+	s.d = s.d[:len(s.d) - 1]
+	return x
+}
+
+func (s*stack) empty() bool {
+	return len(s.d) <= 0
+}
+
+func IsBalancedParentheses(s string) bool {
+	st := new(stack)
+	for _, b := range s {
+		switch b {
+		case '{', '[', '(':
+			st.push(b)
+		case '}', ']', ')':
+			if st.empty() {
+				return false
+			}
+			if st.pop() != matchingPairs[b] {
+				return false
+			}
+		}
+	}
+	return st.empty()
+}
+
+func main() {
+	for _, s := range os.Args[1:] {
+		fmt.Printf("%q: %v\n",s, IsBalancedParentheses(s))
+	}
+}
+```
+
+#### JavaScript
+
+```js
+const parentheses = {
+    '{': '}',
+    '[': ']',
+    '(': ')',
+};
+
+function isOpenParenthesis(p) {
+    return p in parentheses;
+}
+
+function matches(p1, p2) {
+    return parentheses[p1] === p2;
+}
+
+function isClosedParenthesis(p) {
+    // calling this on every iteration is a bit inefficient
+    // we can keep a reverse index as well ({ '}': '{' }) or
+    // replace this with multiple conditionals
+    return Object.keys(parentheses).some(open => parentheses[open] === p);
+}
+
+function isBalanced(expr) {
+    const stack = [];
+
+    for (let p of expr) {
+        if (isOpenParenthesis(p)) {
+            stack.push(p);
+        }
+        else if (isClosedParenthesis(p)) {
+            if (stack.length === 0) {
+                return false;
+            }
+
+            if (!matches(stack.pop(), p)) {
+                return false;
+            }
+        }
+    }
+
+    return stack.length === 0;
+}
+
+// tests
+
+const cases = [
+    ['(',           false],
+    ['',            true ],
+    ['2',           true ],
+    [')',           false],
+    [')2*2(',       false],
+    ['(2*4]',       false],
+    ['(({[]}))',    true ],
+    ['(({[}]))',    false],
+];
+
+for (let [ expr, expected ] of cases) {
+    if (isBalanced(expr) !== expected) {
+        console.error(`${expr} expected to return ${expected}`);
+    }
+}
+```
+
+#### Python
+```python
+def is_balanced(s):
+    pairs = {
+        '(': ')',
+        '[': ']',
+        '{': '}',
+    }
+    parens = pairs.keys() | pairs.values()
+
+    expected = []
+    for c in s:
+        if c not in parens:
+            continue
+        if c in pairs:
+            expected.append(pairs[c])
+            continue
+        if not expected:
+            return False
+        if c != expected.pop():
+            return False
+    return len(expected) == 0
+```
+
+#### Discussion
+
+1. What data structures should we use for this problem?
+2. What is the runtime and space complexity?
+
+### Runtime complexity
+
+`O(n)` as you need to parse the string at least once.
+
+### Memory usage
+
+`O(n)` as we may push the entire string onto our stack.
+
+## Test Driver
+
+  `main()` function with test case(s) that can be copied and pasted into the hackerrank
+
+## Follow-up questions
+
+1. Can candidate modify the solution to return the number of matched parentheses pairs if it has balanced parentheses?
+2. How will you do the problem if you have a string that is 100 GB of data ?
+3. If the candidate's solution uses hard-coded checks for matching parentheses, ask what we would change if we were providing this function as part of a library.
+4. How does your solution change if we allow incorrect relative order (i.e. `"({)} => True`)?
+
+## Follow-up question Solutions
+
+1. Increment a counter whenever we pop a matching left parenthesis. We should return -1 if the parentheses are imbalanced so we can differentiate from cases with no parentheses.
+2. No code has to be written, this is just testing distributed system knowledge. Use the source/replica model to implement a divide and conquer algorithm. Each replica processes a chunk of data to determine its own balanced parentheses and the source aggregates the replicant data in order and computes across the chunks.
+3. Define our set of parentheses as a map of right parenthesis -> left parenthesis to make our match checking generic, then we can provide an interface to add key/value pairs to this map. Note that this changes the space complexity since we have to worry about how many parentheses pairs we have
+4. Instead of a stack, we need a map from each parenthesis to a count of how many left parens we've seen of this type. On a new corresponding left paren, we increment the map's value, on a right paren, we decrement it. Return `false` if we try to decrement when the value is already 0, return `true` if at the end, they values sum to 0.
+
+## Tags
+
+- data structures
+- stack
+- interface design
+- algorithms
+- string parsing
+- coding fluency medium
+
+## Contacts
+
+- Ankur Choksi, achoksi@bloomberg.net
+- Kubilay Kahveci, kahveci@bloomberg.net (JavaScript solution)
+- Oleg Kosenkov, okosenkov@bloomberg.net (GoLang solution)
+- Alexander Pozdneev, apozdneev@bloomberg.net (Python solution)

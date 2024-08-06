@@ -1,0 +1,154 @@
+## Problem Description
+
+  Summary: Given list of events of a given day in a calendar, write an algorithm to return a list of busy view time slots. Busy view is created by the consolidating adjacent and overlapping event time slots without showing details of individual events.
+
+  Details: Each event in calendar has a start time, end time & some title. Events can start at any minute (granularity at the minute only, no seconds).
+
+## Expected Completion Time
+
+  20-25 minutes
+
+## Problem Complexity Level
+
+  Coding Fluency: Medium
+  
+  Problem Solving: Hard
+
+## Questions the candidate might ask
+
+  Can an event start any time during 24 hour - Yes
+
+  Can an event start at any odd minute (say 09:51) - Yes
+
+  Can the input events for my function be assumed sorted in some order - No
+
+  Should I define a class to represent time/date handling - All I know is that my calendar is in single timezone & events will always start at minutes (no seconds). Let the candidate decide what he or she wants to use to represent it. Simplest solution is to use plain integer to represent time (say 900 for 9am, or 1500 for 3pm). No date representation needed for date, since they will be dealing with events for a given day.
+
+  Should I write sort method, if I want events to be sorted in some order - Candidate should not write sort() method itself, but suggest they use standard sort in C++ or Python or Java. We will know if they write a class & container which is sortable (i.e. operator< in C++ or Comparable interface in Java or Python).
+
+  Can I return the list of events itself as a return type - Yes (or alternatively you can return a list of pairs)
+
+## Sample inputs - Expected outputs
+
+  Input: list of following events
+  
+```
+    (100,300, "Some Event")  // 1:00 am to 3:00 am
+    (115,145, "Some Event")
+    (145,215, "Some Event")
+    (200,400, "Some Event")
+    (215,230, "Some Event")
+    (215,415, "Some Event")
+    (600,700, "Some Event")
+    (500,600, "Some Event")
+```
+
+  Output: Based on above events, my busy view should show like this:
+
+```
+    (100,415) // Busy from 1am to 4:15 am
+    (500,700) // Busy from 5am to 7:00 am
+```
+
+## Input corner cases
+
+  1. One event shadowing over 2-3 other events.
+  2. One event starting exactly when previous one finishes.
+  3. Zero events
+
+## Solution
+
+  Brute force solution: Maintain a list of busy slots (initially empty), then go through events, and for each event, scan busy slots to see if it overlaps. This solution is naive solution, and it eventually fails to cover all the corner conditions. The runtime complexity becomes quadratic. Just suggest the candidate to look for a better solution.
+
+  Bitmap style solution: Have a large array of size (24\*60) size. Iterate through this large array for each minute, and for each minute, iterate over events to see if this minute is busy. If so mark it busy. At the end iterate over this large array to find contiguous busy slots. This solution is linear for time complexity but with a large constant factor (24\*60). Considering the context of the problem, we can expect the input size (number of meetings) to be small enough that this solution will be effectively worse than the non-linear solution below (this is a good discussion to have with the candidate if they come up with this solution). In terms of space complexity, this solution is constant but again with a large constant factor of 24\*60.
+
+  Interval increment solution: Have a map. For each meeting increment the element indexed by start of the meeting interval by one and decrement the element indexed by the minute after the meeting ends by one. At the end iterate over the container with an active counter to determine how many meetings are occurring by adding in the incremented value at each array index slot. The space complexity will be min(N,T) since the map is bounded by N, since we only enter 2N elements to the map and the number of timeslots T since the meeting times are bounded by T. The time complexity will therefore be N * log(min(N, T)) + min(N, T) eliminating the factor of the number of timeslots T on N of the bitmap solution for each input. Additionally, one possibly beneficial side effect of this approach is you will also know exactly how many meetings are being double booked for a given slot.
+
+  Interval merge solution: Good candidates will realize very easily that events should be sorted by start time (that will take n-log-n time), and a simple iteration over sorted events will be enough. Just keep current busy slot, and when inspecting next event, adjust the current busy slot if it overlaps. If no overlap, then current busy slot if final (add it to the return list), and start a new busy slot with this current event. Code will be much smaller & clean that way. Space complexity is constant (there are at worst 24\*60 slots of 1 minute each, but we can reasonably expect the average case to be a small number of slots).
+
+### Design
+
+  If candidate finds it hard to get the idea for representing time, we can provide them a simple structure to represent an event with time as plain integers, which may look like this (C++):
+
+```c++
+struct Meeting {
+  int start;
+  int end;
+  Meeting(int s, int e) : start(s), end(e) {}
+};
+```
+
+### Data structures
+
+  Array based lists (like vector).
+
+## Solution - Increment intervals
+### Implementation
+
+#### C++
+[Link to C++ Solution](CalendarBusyViewIntervalIncrement.t.cpp)
+
+### Runtime complexity
+
+  Where `N` is the number of meetings and `T` is the number of timeslots
+
+  Note that the map we use will have at most `min(N, T)` entries:
+  * at most `N` entries (the start / end that was inserted)
+  * at most `T` timeslots (meeting times are bounded with respect `T`)
+
+  Therefore the above solution is `O(N * log(min(N, T)) + min(N, T))`
+
+  * For each meeting we will insert a start / end into the map ( `N * log(min(N, T))` )
+  * We iterate over the map to assemble our solution  ( `O(min(N, T))` )
+    
+
+### Memory usage
+
+  The memory used is the size of the map, `O(min(N, T))` as described above
+
+
+## Solution - Interval merge
+### Implementation
+
+#### C++
+[Link to C++ Solution](CalendarBusyView.t.cpp)
+
+#### Python
+[Link to Python Solution](calendar-busy-view.py)
+
+### Runtime complexity
+
+  Above solution is O(n * log (n))
+
+### Memory usage
+
+  O(n), as there are at most as many busy slots as meetings
+
+## Test Driver
+
+### C++
+- [Link to C++ Solution](CalendarBusyView.t.cpp)
+- [Link to C++ Solution](CalendarBusyViewIntervalIncrement.t.cpp)
+
+### Python
+- [Link to Python Solution](calendar-busy-view.py)
+
+## Follow-up questions
+
+We can use this question to pivot into an O-O design discussions. For example, can you design a Schedule class to hold these slots (a.k.a. Events), and use the above algorithm to find out the free slots among two or more people? Throw in the concept of Conference Room (a.k.a. Resource), and ask the candidate to get the availability of a conference room for a meeting. (Think `APPT<GO>`).
+
+Another twist on the question is to implement a class with two methods: one to process the calendar events one at a time, and one to return the busy view at any given time. With this approach, the optimal solution (that I'm aware of) is to implement a binary search tree or other sorted structure to store the intervals. As there are some unique constraints, this can be done either through a standard library or a custom implementation to accommodate the merging. This solution is actually log(k) to process each result, where k is the size of the solution set, which means n calls would be n log(k) instead of n log(n), a slight improvement in run time, depending on the relative size of the solution set and input set. 
+
+[Python solution](calendar-busy-view.py) satisfying the original problem as well as the online extension.
+
+## Tags
+
+- data structures
+- algorithms
+- coding fluency medium
+- sre
+
+## Contacts
+
+- Devendra Sharma
+- Zhenchao Lin
